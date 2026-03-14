@@ -1,0 +1,104 @@
+﻿@model TechShop.Models.Product
+@{
+    ViewData["Title"] = Model.Name;
+    var related = ViewBag.Related as List<TechShop.Models.Product>;
+}
+
+<div class="container py-5" style="margin-top:70px">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
+            <li class="breadcrumb-item active">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row g-5">
+        <div class="col-lg-5">
+            <div class="detail-img-wrap">
+                <img src="@(Model.ImageUrl ?? "https://via.placeholder.com/500x400")" alt="@Model.Name" class="detail-img" />
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <span class="badge badge-cat mb-2">@Model.Category?.Name</span>
+            <h1 class="detail-title">@Model.Name</h1>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="detail-price">@Model.Price.ToString("N0") ₫</span>
+                @if (Model.Stock > 0)
+                {
+                    <span class="badge bg-success">Còn hàng (@Model.Stock)</span>
+                }
+                else
+                {
+
+                    <span class="badge bg-danger">Hết hàng</span>
+                }
+            </div>
+            <div class="detail-desc mb-4">
+                <p>@Model.Description</p>
+            </div>
+            <div class="detail-meta mb-4">
+                <div class="meta-row"><span class="meta-label">Danh mục:</span><span>@Model.Category?.Name</span></div>
+                <div class="meta-row"><span class="meta-label">Mã sản phẩm:</span><span>TS-@Model.Id.ToString("D4")</span></div>
+                <div class="meta-row"><span class="meta-label">Ngày nhập:</span><span>@Model.CreatedAt.ToString("dd/MM/yyyy")</span></div>
+            </div>
+            @if (Model.Stock > 0)
+            {
+                <form asp-controller="Product" asp-action="AddToCart" method="post" class="d-flex gap-3 align-items-center">
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <div class="qty-control">
+                        <button type="button" onclick="changeQty(-1)">-</button>
+                        <input type="number" name="quantity" id="qty" value="1" min="1" max="@Model.Stock" />
+                        <button type="button" onclick="changeQty(1)">+</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ
+                    </button>
+                </form>
+            }
+            <div class="detail-badges mt-4">
+                <span><i class="bi bi-shield-check text-success"></i> Bảo hành 12 tháng</span>
+                <span><i class="bi bi-truck text-primary"></i> Giao nhanh</span>
+                <span><i class="bi bi-arrow-repeat text-warning"></i> Đổi trả 30 ngày</span>
+            </div>
+        </div>
+    </div>
+
+    @if (related != null && related.Any())
+    {
+        <div class="mt-5">
+            <h4 class="section-title">Sản phẩm <span class="text-gradient">liên quan</span></h4>
+            <div class="row g-4">
+                @foreach (var p in related)
+                {
+                    <div class="col-6 col-md-3">
+                        <div class="product-card">
+                            <div class="product-img-wrap">
+                                <img src="@(p.ImageUrl ?? "https://via.placeholder.com/300")" alt="@p.Name" class="product-img" />
+                            </div>
+                            <div class="product-body">
+                                <h6 class="product-name">@p.Name</h6>
+                                <div class="product-footer">
+                                    <span class="product-price">@p.Price.ToString("N0") ₫</span>
+                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.Id" class="btn-add-cart">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function changeQty(delta) {
+            const input = document.getElementById('qty');
+            const val = parseInt(input.value) + delta;
+            if (val >= 1 && val <= parseInt(input.max)) input.value = val;
+        }
+    </script>
+}

@@ -1,0 +1,167 @@
+﻿@model List<TechShop.Models.Product>
+@{
+    ViewData["Title"] = "Trang chủ";
+    var categories = ViewBag.Categories as List<TechShop.Models.Category>;
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-6">
+                <div class="hero-badge">🔥 Sale lên đến 40%</div>
+                <h1 class="hero-title">Công nghệ<br><span class="text-gradient">đỉnh cao</span><br>tầm tay bạn</h1>
+                <p class="hero-sub">Laptop, gaming gear, linh kiện PC chính hãng. Giao nhanh toàn quốc. Bảo hành chính hãng.</p>
+                <div class="hero-actions">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-grid me-2"></i>Khám phá ngay
+                    </a>
+                    <a href="#featured" class="btn btn-outline-light btn-lg">Xem ưu đãi</a>
+                </div>
+                <div class="hero-stats mt-4">
+                    <div class="stat-item"><span class="stat-num">500+</span><span class="stat-label">Sản phẩm</span></div>
+                    <div class="stat-item"><span class="stat-num">10K+</span><span class="stat-label">Khách hàng</span></div>
+                    <div class="stat-item"><span class="stat-num">4.9★</span><span class="stat-label">Đánh giá</span></div>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="hero-image-wrap">
+                    <img src="https://images.unsplash.com/photo-1593642702821-c8da6771f0c6?w=600" alt="Tech" class="hero-img" />
+                    <div class="float-card fc1"><i class="bi bi-shield-check text-success"></i> Bảo hành chính hãng</div>
+                    <div class="float-card fc2"><i class="bi bi-truck text-primary"></i> Giao nhanh 2h</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories -->
+<section class="py-5 bg-dark-2" id="featured">
+    <div class="container">
+        <h2 class="section-title">Danh mục <span class="text-gradient">sản phẩm</span></h2>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-2">
+                <a asp-controller="Home" asp-action="Index" class="cat-card @(ViewBag.SelectedCategory == null ? "active" : "")">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                    <span>Tất cả</span>
+                </a>
+            </div>
+            @foreach (var cat in categories!)
+            {
+                var icons = new Dictionary<string, string> { { "Laptop", "bi-laptop" }, { "Chuột", "bi-mouse" }, { "Bàn phím", "bi-keyboard" }, { "Màn hình", "bi-display" }, { "Linh kiện PC", "bi-cpu" } };
+                var icon = icons.ContainsKey(cat.Name) ? icons[cat.Name] : "bi-box";
+                <div class="col-6 col-md-4 col-lg-2">
+                    <a asp-controller="Home" asp-action="Index" asp-route-categoryId="@cat.Id"
+                           class="cat-card @(ViewBag.SelectedCategory == cat.Id ? "active" : "")">
+                        <i class="bi @icon"></i>
+                        <span>@cat.Name</span>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Products Grid -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">
+                @if (ViewBag.SelectedCategory != null)
+                {
+                    <span>@categories?.FirstOrDefault(c => c.Id == (int)ViewBag.SelectedCategory)?.Name</span>
+                }
+                else if (!string.IsNullOrEmpty(ViewBag.Search as string))
+                {
+
+                    <span>Kết quả: "@ViewBag.Search"</span>
+                }
+                else
+                {
+
+                    <span>Sản phẩm <span class="text-gradient">nổi bật</span></span>
+                }
+            </h2>
+            <span class="text-muted">@Model.Count sản phẩm</span>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-search display-1"></i>
+                <h4>Không tìm thấy sản phẩm</h4>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Xem tất cả</a>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var product in Model)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <div class="product-card">
+                            <div class="product-img-wrap">
+                                <img src="@(product.ImageUrl ?? "https://via.placeholder.com/300x200")" alt="@product.Name" class="product-img" />
+                                <div class="product-overlay">
+                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@product.Id" class="btn btn-light btn-sm">
+                                        <i class="bi bi-eye me-1"></i>Chi tiết
+                                    </a>
+                                </div>
+                                @if (product.Stock < 5 && product.Stock > 0)
+                                {
+                                    <span class="badge-stock">Sắp hết</span>
+                                }
+                            </div>
+                            <div class="product-body">
+                                <p class="product-cat">@product.Category?.Name</p>
+                                <h6 class="product-name">@product.Name</h6>
+                                <div class="product-footer">
+                                    <span class="product-price">@product.Price.ToString("N0") ₫</span>
+                                    <form asp-controller="Product" asp-action="AddToCart" method="post">
+                                        <input type="hidden" name="productId" value="@product.Id" />
+                                        <button type="submit" class="btn-add-cart" title="Thêm vào giỏ">
+                                            <i class="bi bi-cart-plus"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Features Banner -->
+<section class="features-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-6 col-lg-3">
+                <div class="feature-item">
+                    <i class="bi bi-truck"></i>
+                    <div><strong>Miễn phí vận chuyển</strong><p>Đơn hàng trên 500k</p></div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="feature-item">
+                    <i class="bi bi-shield-check"></i>
+                    <div><strong>Bảo hành chính hãng</strong><p>12-24 tháng</p></div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="feature-item">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <div><strong>Đổi trả dễ dàng</strong><p>Trong vòng 30 ngày</p></div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="feature-item">
+                    <i class="bi bi-headset"></i>
+                    <div><strong>Hỗ trợ 24/7</strong><p>Hotline: 1800 6789</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

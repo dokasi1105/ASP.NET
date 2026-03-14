@@ -1,0 +1,98 @@
+﻿@model TechShop.Models.Order
+@{
+    ViewData["Title"] = "Thanh toán";
+    var cart = ViewBag.Cart as List<TechShop.Models.CartItem>;
+    decimal total = ViewBag.Total;
+}
+
+<div class="container py-5" style="margin-top:70px">
+    <h2 class="page-title mb-4"><i class="bi bi-credit-card me-2"></i>Thanh toán</h2>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="checkout-form-wrap">
+                <h5 class="mb-4">Thông tin giao hàng</h5>
+                <form asp-action="Checkout" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label"></label>
+                        <input asp-for="Address" class="form-control" placeholder="123 Đường Lê Lợi" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label asp-for="City" class="form-label"></label>
+                            <input asp-for="City" class="form-control" placeholder="TP. Hồ Chí Minh" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="PostalCode" class="form-label"></label>
+                            <input asp-for="PostalCode" class="form-control" placeholder="700000" />
+                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="payment-method mb-4">
+                        <h6>Phương thức thanh toán</h6>
+                        <label class="pay-option active">
+                            <input type="radio" name="payment" value="cod" checked />
+                            <i class="bi bi-cash-coin"></i>
+                            <span>Thanh toán khi nhận hàng (COD)</span>
+                        </label>
+                        <label class="pay-option">
+                            <input type="radio" name="payment" value="bank" />
+                            <i class="bi bi-bank"></i>
+                            <span>Chuyển khoản ngân hàng</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-bag-check me-2"></i>Đặt hàng ngay — @total.ToString("N0") ₫
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="order-summary">
+                <h5 class="mb-4">Đơn hàng của bạn (@cart?.Sum(i => i.Quantity) sản phẩm)</h5>
+                @foreach (var item in cart!)
+                {
+                    <div class="checkout-item">
+                        <img src="@(item.ImageUrl ?? "https://via.placeholder.com/60")" alt="@item.ProductName" />
+                        <div class="checkout-item-info">
+                            <p>@item.ProductName</p>
+                            <small>x@item.Quantity</small>
+                        </div>
+                        <span>@item.Subtotal.ToString("N0") ₫</span>
+                    </div>
+                }
+                <hr>
+                <div class="summary-row">
+                    <span>Tạm tính</span><span>@total.ToString("N0") ₫</span>
+                </div>
+                <div class="summary-row">
+                    <span>Vận chuyển</span><span class="text-success">Miễn phí</span>
+                </div>
+                <div class="summary-total mt-3">
+                    <span>Tổng cộng</span>
+                    <span class="text-gradient">@total.ToString("N0") ₫</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.pay-option input').forEach(input => {
+            input.addEventListener('change', function() {
+                document.querySelectorAll('.pay-option').forEach(l => l.classList.remove('active'));
+                this.closest('.pay-option').classList.add('active');
+            });
+        });
+    </script>
+}

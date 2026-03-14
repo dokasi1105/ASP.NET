@@ -1,0 +1,135 @@
+﻿@model List<TechShop.Models.Product>
+@{
+    ViewData["Title"] = "Sản phẩm";
+    var categories = ViewBag.Categories as List<TechShop.Models.Category>;
+}
+
+<div class="container py-4" style="margin-top:70px">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="sidebar-filter">
+                <h6 class="filter-title"><i class="bi bi-funnel me-2"></i>Danh mục</h6>
+                <ul class="filter-list">
+                    <li>
+                        <a asp-controller="Product" asp-action="Index"
+                               class="filter-item @(ViewBag.SelectedCategory == null && string.IsNullOrEmpty(ViewBag.Search as string) ? "active" : "")">
+                            <i class="bi bi-grid-3x3-gap me-2"></i>Tất cả sản phẩm
+                        </a>
+                    </li>
+                    @foreach (var cat in categories!)
+                    {
+                        var icons = new Dictionary<string, string> {
+                            {"Laptop","bi-laptop"}, {"Chuột","bi-mouse"},
+                            {"Bàn phím","bi-keyboard"}, {"Màn hình","bi-display"},
+                            {"Linh kiện PC","bi-cpu"}
+                        };
+                        var icon = icons.ContainsKey(cat.Name) ? icons[cat.Name] : "bi-box";
+                        <li>
+                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.Id"
+                                   class="filter-item @(ViewBag.SelectedCategory?.ToString() == cat.Id.ToString() ? "active" : "")">
+                                <i class="bi @icon me-2"></i>@cat.Name
+                                <span class="filter-count">@cat.Products.Count</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-0 fw-bold">
+                        @if (!string.IsNullOrEmpty(ViewBag.Search as string))
+                        {
+                            <span>Kết quả: "@ViewBag.Search"</span>
+                        }
+                        else if (ViewBag.SelectedCategory != null)
+                        {
+
+                            <span>@categories?.FirstOrDefault(c => c.Id == (int)ViewBag.SelectedCategory)?.Name</span>
+                        }
+                        else
+                        {
+
+                            <span>Tất cả sản phẩm</span>
+                        }
+                    </h5>
+                    <small class="text-muted">@Model.Count sản phẩm</small>
+                </div>
+                <form asp-action="Index" method="get" class="d-flex gap-2">
+                    @if (ViewBag.SelectedCategory != null)
+                    {
+                        <input type="hidden" name="categoryId" value="@ViewBag.SelectedCategory" />
+                    }
+                    <div class="search-box">
+                        <input type="text" name="search" class="form-control search-input" placeholder="Tìm kiếm..." value="@ViewBag.Search" />
+                        <button type="submit" class="search-btn"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <i class="bi bi-search display-1"></i>
+                    <h4>Không tìm thấy sản phẩm</h4>
+                    <a asp-action="Index" class="btn btn-primary mt-2">Xem tất cả</a>
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+                    @foreach (var product in Model)
+                    {
+                        <div class="col-6 col-md-4">
+                            <div class="product-card">
+                                <div class="product-img-wrap">
+                                    <img src="@(product.ImageUrl ?? "https://via.placeholder.com/300x200")"
+                                         alt="@product.Name" class="product-img" loading="lazy" />
+                                    <div class="product-overlay">
+                                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@product.Id" class="btn btn-light btn-sm">
+                                            <i class="bi bi-eye me-1"></i>Chi tiết
+                                        </a>
+                                    </div>
+                                    @if (product.Stock < 5 && product.Stock > 0)
+                                    {
+                                        <span class="badge-stock">Sắp hết</span>
+                                    }
+                                    else if (product.Stock == 0)
+                                    {
+                                        <span class="badge-stock" style="background:var(--danger);color:#fff">Hết hàng</span>
+                                    }
+                                </div>
+                                <div class="product-body">
+                                    <p class="product-cat">@product.Category?.Name</p>
+                                    <h6 class="product-name">@product.Name</h6>
+                                    <div class="product-footer">
+                                        <span class="product-price">@product.Price.ToString("N0") ₫</span>
+                                        @if (product.Stock > 0)
+                                        {
+                                            <form asp-controller="Product" asp-action="AddToCart" method="post">
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                <button type="submit" class="btn-add-cart" title="Thêm vào giỏ">
+                                                    <i class="bi bi-cart-plus"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-add-cart" disabled style="opacity:.4;cursor:not-allowed">
+                                                <i class="bi bi-cart-x"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
