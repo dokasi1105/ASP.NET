@@ -133,6 +133,42 @@
                                 <div class="product-body">
                                     <p class="product-cat">@product.Category?.Name</p>
                                     <h6 class="product-name">@product.Name</h6>
+                                    <!-- BẮT ĐẦU: CODE ĐÁNH GIÁ SAO ẢO -->
+                                    <div class="product-rating-container d-flex align-items-center mb-2">
+                                        <div class="stars-outer text-warning" style="color: var(--brand-gold)!important;">
+                                            @{
+                                                // Dùng ID sản phẩm làm Seed để số sao/lượt đánh giá không bị đổi khi F5
+                                                var random = new Random(product.Id);
+
+                                                // Random điểm từ 4.0 đến 5.0 cho đẹp
+                                                decimal fakeRating = (decimal)(random.NextDouble() * 1.0 + 4.0);
+                                                fakeRating = Math.Round(fakeRating, 1);
+
+                                                // Random số lượt người mua từ 12 đến 345 người
+                                                int fakeReviewCount = random.Next(12, 345);
+
+                                                // Tính toán vẽ sao
+                                                int fullStars = (int)Math.Floor(fakeRating);
+                                                bool hasHalfStar = (fakeRating - fullStars) >= 0.5m;
+                                                int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                            }
+
+                                            @for (int i = 0; i < fullStars; i++)
+                                            {
+                                                <i class="bi bi-star-fill shadow-sm"></i>
+                                            }
+                                            @if (hasHalfStar)
+                                            {
+                                                <i class="bi bi-star-half shadow-sm"></i>
+                                            }
+                                            @for (int i = 0; i < emptyStars; i++)
+                                            {
+                                                <i class="bi bi-star text-muted opacity-50"></i>
+                                            }
+                                        </div>
+                                        <span class="ms-2 text-muted small">( @fakeReviewCount đánh giá )</span>
+                                    </div>
+                                    <!-- KẾT THÚC: CODE ĐÁNH GIÁ SAO ẢO -->
                                     <div class="product-footer">
                                         <span class="product-price">@product.Price.ToString("N0") ₫</span>
                                         @if (product.Stock > 0)
