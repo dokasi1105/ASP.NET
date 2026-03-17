@@ -7,36 +7,74 @@
 <div class="container py-4" style="margin-top:70px">
     <div class="row g-4">
         <!-- Sidebar -->
-        <div class="col-lg-3">
-            <div class="sidebar-filter">
-                <h6 class="filter-title"><i class="bi bi-funnel me-2"></i>Danh mục</h6>
-                <ul class="filter-list">
-                    <li>
-                        <a asp-controller="Product" asp-action="Index"
-                               class="filter-item @(ViewBag.SelectedCategory == null && string.IsNullOrEmpty(ViewBag.Search as string) ? "active" : "")">
-                            <i class="bi bi-grid-3x3-gap me-2"></i>Tất cả sản phẩm
-                        </a>
-                    </li>
-                    @foreach (var cat in categories!)
-                    {
-                        var icons = new Dictionary<string, string> {
-                            {"Laptop","bi-laptop"}, {"Chuột","bi-mouse"},
-                            {"Bàn phím","bi-keyboard"}, {"Màn hình","bi-display"},
-                            {"Linh kiện PC","bi-cpu"}
-                        };
-                        var icon = icons.ContainsKey(cat.Name) ? icons[cat.Name] : "bi-box";
-                        <li>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.Id"
-                                   class="filter-item @(ViewBag.SelectedCategory?.ToString() == cat.Id.ToString() ? "active" : "")">
-                                <i class="bi @icon me-2"></i>@cat.Name
-                                <span class="filter-count">@cat.Products.Count</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </div>
-        </div>
+        <div class="container py-4" style="margin-top:70px">
+            <form asp-action="Index" method="get" id="filterForm">
+                <div class="row g-4">
+                    <div class="col-lg-3">
+                        <div class="sidebar-filter p-4 rounded" style="background-color: var(--bg-dark-surface); border: 1px solid var(--bg-dark-elevated);">
+                            <h5 class="filter-title mb-4 border-bottom pb-3"><i class="bi bi-funnel text-cyan me-2"></i>Bộ Lọc Tìm Kiếm</h5>
 
+                            @if (ViewBag.SelectedCategory != null)
+                            {
+                                <input type="hidden" name="categoryId" value="@ViewBag.SelectedCategory" />
+                            }
+
+                            <div class="filter-block mb-4">
+                                <label class="form-label fw-bold text-light mb-3">Thương Hiệu</label>
+                                <select name="brand" class="form-select bg-dark text-light border-secondary">
+                                    <option value="">-- Tất cả thương hiệu --</option>
+                                    @foreach (var b in ViewBag.Brands)
+                                    {
+                                        <option value="@b" selected="@(ViewBag.SelectedBrand == b)">@b</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="filter-block mb-4">
+                                <label class="form-label fw-bold text-light mb-3">Khoảng Giá (VNĐ)</label>
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-dark text-muted border-secondary">Từ</span>
+                                        <input type="number" name="minPrice" class="form-control bg-dark text-light border-secondary" placeholder="0" value="@ViewBag.MinPrice" />
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-dark text-muted border-secondary">Đến</span>
+                                        <input type="number" name="maxPrice" class="form-control bg-dark text-light border-secondary" placeholder="Max" value="@ViewBag.MaxPrice" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-outline-info" style="border-color: var(--brand-cyan); color: var(--brand-cyan);">
+                                    <i class="bi bi-funnel-fill me-1"></i> Áp dụng bộ lọc
+                                </button>
+                                <a asp-action="Index" class="btn btn-link text-muted text-decoration-none">Xóa tất cả</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded" style="background-color: var(--bg-dark-surface);">
+                            <div class="results-count">
+                                <span class="text-muted">Tìm thấy <strong class="text-white fs-5">@Model.Count</strong> sản phẩm phù hợp.</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="text-nowrap mb-0 text-muted fw-bold">Sắp xếp theo:</label>
+                                <select name="sortOrder" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none" onchange="this.form.submit()">
+                                    <option value="">Sản phẩm Mới nhất</option>
+                                    <option value="price_asc" selected="@(ViewBag.SortOrder == "price_asc")">Giá: Thấp đến Cao</option>
+                                    <option value="price_desc" selected="@(ViewBag.SortOrder == "price_desc")">Giá: Cao đến Thấp</option>
+                                    <option value="name_asc" selected="@(ViewBag.SortOrder == "name_asc")">Tên: A - Z</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </form>
+        </div>
         <!-- Products -->
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
