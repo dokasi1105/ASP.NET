@@ -20,17 +20,6 @@
                             }
 
                             <div class="filter-block mb-4">
-                                <label class="form-label fw-bold text-light mb-3">Thương Hiệu</label>
-                                <select name="brand" class="form-select bg-dark text-light border-secondary">
-                                    <option value="">-- Tất cả thương hiệu --</option>
-                                    @foreach (var b in ViewBag.Brands)
-                                    {
-                                        <option value="@b" selected="@(ViewBag.SelectedBrand == b)">@b</option>
-                                    }
-                                </select>
-                            </div>
-
-                            <div class="filter-block mb-4">
                                 <label class="form-label fw-bold text-light mb-3">Khoảng Giá (VNĐ)</label>
                                 <div class="d-flex flex-column gap-2">
                                     <div class="input-group input-group-sm">
