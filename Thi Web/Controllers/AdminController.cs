@@ -85,7 +85,7 @@ namespace TechShop.Controllers
     // ================================================================
     // ADMIN CATEGORY CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin")]
     public class AdminCategoryController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -154,7 +154,7 @@ namespace TechShop.Controllers
     // ================================================================
     // ADMIN ORDER CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin")]
     public class AdminOrderController : Controller
     {
         private readonly ApplicationDbContext _context;
