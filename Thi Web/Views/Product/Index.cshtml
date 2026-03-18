@@ -7,36 +7,63 @@
 <div class="container py-4" style="margin-top:70px">
     <div class="row g-4">
         <!-- Sidebar -->
-        <div class="col-lg-3">
-            <div class="sidebar-filter">
-                <h6 class="filter-title"><i class="bi bi-funnel me-2"></i>Danh mục</h6>
-                <ul class="filter-list">
-                    <li>
-                        <a asp-controller="Product" asp-action="Index"
-                               class="filter-item @(ViewBag.SelectedCategory == null && string.IsNullOrEmpty(ViewBag.Search as string) ? "active" : "")">
-                            <i class="bi bi-grid-3x3-gap me-2"></i>Tất cả sản phẩm
-                        </a>
-                    </li>
-                    @foreach (var cat in categories!)
-                    {
-                        var icons = new Dictionary<string, string> {
-                            {"Laptop","bi-laptop"}, {"Chuột","bi-mouse"},
-                            {"Bàn phím","bi-keyboard"}, {"Màn hình","bi-display"},
-                            {"Linh kiện PC","bi-cpu"}
-                        };
-                        var icon = icons.ContainsKey(cat.Name) ? icons[cat.Name] : "bi-box";
-                        <li>
-                            <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.Id"
-                                   class="filter-item @(ViewBag.SelectedCategory?.ToString() == cat.Id.ToString() ? "active" : "")">
-                                <i class="bi @icon me-2"></i>@cat.Name
-                                <span class="filter-count">@cat.Products.Count</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </div>
-        </div>
+        <div class="container py-4" style="margin-top:70px">
+            <form asp-action="Index" method="get" id="filterForm">
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <h5 class="text-primary"><i class="bi bi-list"></i> Danh mục sản phẩm</h5>
+                        <div class="list-group">
+                            <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action bg-dark text-white">Tất cả</a>
+                            @if (ViewBag.Categories != null)
+                            {
+                                foreach (var cat in ViewBag.Categories)
+                                {
+                                    <a href="@Url.Action("Index", "Product", new { categoryId = cat.Id })"
+                                       class="list-group-item list-group-item-action bg-dark text-white border-secondary">
+                                        @cat.Name
+                                    </a>
+                                }
+                            }
+                        </div>
+                    </div>
 
+                    <div class="col-md-9">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3>Sản phẩm</h3>
+                            <form method="get" asp-action="Index" class="d-flex gap-2">
+                                <input type="hidden" name="categoryId" value="@ViewBag.CurrentCat" />
+                                <select name="priceRange" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()">
+                                    <option value="">-- Chọn mức giá --</option>
+                                    <option value="under5" selected="@(ViewBag.PriceRange == "under5")">Dưới 5 triệu</option>
+                                    <option value="5to10" selected="@(ViewBag.PriceRange == "5to10")">Từ 5 - 10 triệu</option>
+                                    <option value="10to15" selected="@(ViewBag.PriceRange == "10to15")">Từ 10 - 15 triệu</option>
+                                    <option value="over15" selected="@(ViewBag.PriceRange == "over15")">Trên 15 triệu</option>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded" style="background-color: var(--bg-dark-surface);">
+                            <div class="results-count">
+                                <span class="text-muted">Tìm thấy <strong class="text-white fs-5">@Model.Count</strong> sản phẩm phù hợp.</span>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="text-nowrap mb-0 text-muted fw-bold">Sắp xếp theo:</label>
+                                <select name="sortOrder" class="form-select form-select-sm bg-dark text-light border-secondary w-auto shadow-none" onchange="this.form.submit()">
+                                    <option value="">Sản phẩm Mới nhất</option>
+                                    <option value="price_asc" selected="@(ViewBag.SortOrder == "price_asc")">Giá: Thấp đến Cao</option>
+                                    <option value="price_desc" selected="@(ViewBag.SortOrder == "price_desc")">Giá: Cao đến Thấp</option>
+                                    <option value="name_asc" selected="@(ViewBag.SortOrder == "name_asc")">Tên: A - Z</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </form>
+        </div>
         <!-- Products -->
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -106,6 +133,42 @@
                                 <div class="product-body">
                                     <p class="product-cat">@product.Category?.Name</p>
                                     <h6 class="product-name">@product.Name</h6>
+                                    <!-- BẮT ĐẦU: CODE ĐÁNH GIÁ SAO ẢO -->
+                                    <div class="product-rating-container d-flex align-items-center mb-2">
+                                        <div class="stars-outer text-warning" style="color: var(--brand-gold)!important;">
+                                            @{
+                                                // Dùng ID sản phẩm làm Seed để số sao/lượt đánh giá không bị đổi khi F5
+                                                var random = new Random(product.Id);
+
+                                                // Random điểm từ 4.0 đến 5.0 cho đẹp
+                                                decimal fakeRating = (decimal)(random.NextDouble() * 1.0 + 4.0);
+                                                fakeRating = Math.Round(fakeRating, 1);
+
+                                                // Random số lượt người mua từ 12 đến 345 người
+                                                int fakeReviewCount = random.Next(12, 345);
+
+                                                // Tính toán vẽ sao
+                                                int fullStars = (int)Math.Floor(fakeRating);
+                                                bool hasHalfStar = (fakeRating - fullStars) >= 0.5m;
+                                                int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                                            }
+
+                                            @for (int i = 0; i < fullStars; i++)
+                                            {
+                                                <i class="bi bi-star-fill shadow-sm"></i>
+                                            }
+                                            @if (hasHalfStar)
+                                            {
+                                                <i class="bi bi-star-half shadow-sm"></i>
+                                            }
+                                            @for (int i = 0; i < emptyStars; i++)
+                                            {
+                                                <i class="bi bi-star text-muted opacity-50"></i>
+                                            }
+                                        </div>
+                                        <span class="ms-2 text-muted small">( @fakeReviewCount đánh giá )</span>
+                                    </div>
+                                    <!-- KẾT THÚC: CODE ĐÁNH GIÁ SAO ẢO -->
                                     <div class="product-footer">
                                         <span class="product-price">@product.Price.ToString("N0") ₫</span>
                                         @if (product.Stock > 0)
@@ -131,5 +194,6 @@
                 </div>
             }
         </div>
+
     </div>
 </div>

@@ -51,6 +51,8 @@ namespace TechShop.Models
 
         [Display(Name = "Còn hàng")]
         public bool IsActive { get; set; } = true;
+        // Quan hệ Navigation cho chi tiết đánh giá
+        public ICollection<Review> Reviews { get; set; } = new List<Review>();
     }
 
     public class Order
