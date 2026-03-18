@@ -31,13 +31,16 @@
                 <a href="/Admin/AdminOrder/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminOrder") ? "active" : "")">
                     <i class="bi bi-receipt"></i><span>Đơn hàng</span>
                 </a>
-                <div class="nav-section-label">Hệ thống</div>
-                <a href="/Admin/AdminUser/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminUser") ? "active" : "")">
-                    <i class="bi bi-people"></i><span>Người dùng</span>
-                </a>
-                <a href="/Admin/AdminRole/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminRole") ? "active" : "")">
-                    <i class="bi bi-shield-lock"></i><span>Phân quyền</span>
-                </a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="nav-section-label">Hệ thống</div>
+                    <a href="/Admin/AdminUser/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminUser") ? "active" : "")">
+                        <i class="bi bi-people"></i><span>Người dùng</span>
+                    </a>
+                    <a href="/Admin/AdminRole/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminRole") ? "active" : "")">
+                        <i class="bi bi-shield-lock"></i><span>Phân quyền</span>
+                    </a>
+                }
                 <div class="nav-section-label">Điều hướng</div>
                 <a href="/" class="sidebar-link">
                     <i class="bi bi-shop"></i><span>Về trang chủ</span>
