@@ -12,48 +12,26 @@
         }
 
         // Cập nhật phương thức Index trong ProductController.cs
-        public async Task<IActionResult> Index(int? categoryId, string? search, string? brand, decimal? minPrice, decimal? maxPrice, string? sortOrder, string? priceRange)
+        public async Task<IActionResult> Index(int? categoryId, string? search, string? priceRange, string? sortOrder)
         {
-            // 1. Khởi tạo cây truy vấn trì hoãn (IQueryable)
-            IQueryable<Product> query = _context.Products.Include(p => p.Category).AsQueryable()
-               .Include(p => p.Category)
-               .Where(p => p.IsActive);
+            // 1. Khởi tạo truy vấn
+            IQueryable<Product> query = _context.Products.Include(p => p.Category).Where(p => p.IsActive);
 
-            // 2. Chèn điều kiện lọc theo Danh mục
+            // 2. Lọc theo Danh mục
             if (categoryId.HasValue)
+            {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
 
-            // 3. Chèn điều kiện lọc theo Chuỗi tìm kiếm
+            // 3. Lọc theo Chuỗi tìm kiếm
             if (!string.IsNullOrEmpty(search))
             {
                 string searchLower = search.ToLower();
                 query = query.Where(p => p.Name.ToLower().Contains(searchLower) ||
-                                        (p.Description != null && p.Description.ToLower().Contains(searchLower)));
+                                         (p.Description != null && p.Description.ToLower().Contains(searchLower)));
             }
 
-            // 6. Xử lý logic Sắp xếp (Sorting)
-            query = sortOrder switch
-            {
-                "price_asc" => query.OrderBy(p => p.Price),
-                "price_desc" => query.OrderByDescending(p => p.Price),
-                "name_asc" => query.OrderBy(p => p.Name),
-                "name_desc" => query.OrderByDescending(p => p.Name),
-                _ => query.OrderByDescending(p => p.CreatedAt) // Mặc định sắp xếp theo sản phẩm mới nhất
-            };
-
-            // 7. Thực thi câu lệnh SQL với AsNoTracking() để tối ưu hiệu năng đọc
-            var products = await query.AsNoTracking().ToListAsync();
-
-            // 8. Tải danh mục và thương hiệu cho thanh Sidebar
-            ViewBag.Categories = await _context.Categories.AsNoTracking().Include(c => c.Products).ToListAsync();
-
-            if (categoryId.HasValue)
-            {
-                query = query.Where(p => p.CategoryId == categoryId);
-                ViewBag.CurrentCat = categoryId;
-            }
-
-            // Xử lý bộ lọc giá thả xuống
+            // 4. Lọc theo mức giá (Dropdown)
             if (!string.IsNullOrEmpty(priceRange))
             {
                 switch (priceRange)
@@ -65,18 +43,30 @@
                 }
             }
 
-            ViewBag.Categories = await _context.Categories.ToListAsync();
-            // 9. Lưu trạng thái tham số để duy trì hiển thị trên giao diện (Two-way binding feeling)
+            // 5. Sắp xếp (Sorting)
+            query = sortOrder switch
+            {
+                "price_asc" => query.OrderBy(p => p.Price),
+                "price_desc" => query.OrderByDescending(p => p.Price),
+                "name_asc" => query.OrderBy(p => p.Name),
+                _ => query.OrderByDescending(p => p.CreatedAt) // Mặc định mới nhất
+            };
+
+            // 6. THỰC THI CÂU LỆNH SQL (Phải để ở CÙNG, sau khi đã ráp xong mọi bộ lọc)
+            var products = await query.AsNoTracking().ToListAsync();
+
+            // 7. Tải danh mục cho thanh Sidebar
+            ViewBag.Categories = await _context.Categories.AsNoTracking().ToListAsync();
+
+            // 8. Lưu trạng thái để giữ giao diện UI không bị reset
             ViewBag.SelectedCategory = categoryId;
+            ViewBag.CurrentCat = categoryId; // Biến này dùng cho thẻ hidden
             ViewBag.Search = search;
-            ViewBag.SelectedBrand = brand;
-            ViewBag.MinPrice = minPrice;
-            ViewBag.MaxPrice = maxPrice;
             ViewBag.SortOrder = sortOrder;
+            ViewBag.PriceRange = priceRange; // Thêm biến này để giữ Select Dropdown
 
             return View(products);
         }
-
         public async Task<IActionResult> Detail(int id)
         {
             var product = await _context.Products
