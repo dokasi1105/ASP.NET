@@ -15,7 +15,7 @@
         public async Task<IActionResult> Index(int? categoryId, string? search, string? brand, decimal? minPrice, decimal? maxPrice, string? sortOrder, string? priceRange)
         {
             // 1. Khởi tạo cây truy vấn trì hoãn (IQueryable)
-            IQueryable<Product> query = _context.Products
+            IQueryable<Product> query = _context.Products.Include(p => p.Category).AsQueryable()
                .Include(p => p.Category)
                .Where(p => p.IsActive);
 
@@ -30,6 +30,22 @@
                 query = query.Where(p => p.Name.ToLower().Contains(searchLower) ||
                                         (p.Description != null && p.Description.ToLower().Contains(searchLower)));
             }
+
+            // 6. Xử lý logic Sắp xếp (Sorting)
+            query = sortOrder switch
+            {
+                "price_asc" => query.OrderBy(p => p.Price),
+                "price_desc" => query.OrderByDescending(p => p.Price),
+                "name_asc" => query.OrderBy(p => p.Name),
+                "name_desc" => query.OrderByDescending(p => p.Name),
+                _ => query.OrderByDescending(p => p.CreatedAt) // Mặc định sắp xếp theo sản phẩm mới nhất
+            };
+
+            // 7. Thực thi câu lệnh SQL với AsNoTracking() để tối ưu hiệu năng đọc
+            var products = await query.AsNoTracking().ToListAsync();
+
+            // 8. Tải danh mục và thương hiệu cho thanh Sidebar
+            ViewBag.Categories = await _context.Categories.AsNoTracking().Include(c => c.Products).ToListAsync();
 
             if (categoryId.HasValue)
             {
@@ -50,24 +66,6 @@
             }
 
             ViewBag.Categories = await _context.Categories.ToListAsync();
-            return View(await query.ToListAsync());
-
-            // 6. Xử lý logic Sắp xếp (Sorting)
-            query = sortOrder switch
-            {
-                "price_asc" => query.OrderBy(p => p.Price),
-                "price_desc" => query.OrderByDescending(p => p.Price),
-                "name_asc" => query.OrderBy(p => p.Name),
-                "name_desc" => query.OrderByDescending(p => p.Name),
-                _ => query.OrderByDescending(p => p.CreatedAt) // Mặc định sắp xếp theo sản phẩm mới nhất
-            };
-
-            // 7. Thực thi câu lệnh SQL với AsNoTracking() để tối ưu hiệu năng đọc
-            var products = await query.AsNoTracking().ToListAsync();
-
-            // 8. Tải danh mục và thương hiệu cho thanh Sidebar
-            ViewBag.Categories = await _context.Categories.AsNoTracking().Include(c => c.Products).ToListAsync();
-
             // 9. Lưu trạng thái tham số để duy trì hiển thị trên giao diện (Two-way binding feeling)
             ViewBag.SelectedCategory = categoryId;
             ViewBag.Search = search;
