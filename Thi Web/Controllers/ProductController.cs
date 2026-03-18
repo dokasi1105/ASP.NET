@@ -12,7 +12,7 @@
         }
 
         // Cập nhật phương thức Index trong ProductController.cs
-        public async Task<IActionResult> Index(int? categoryId, string? search, string? brand, decimal? minPrice, decimal? maxPrice, string? sortOrder)
+        public async Task<IActionResult> Index(int? categoryId, string? search, string? brand, decimal? minPrice, decimal? maxPrice, string? sortOrder, string? priceRange)
         {
             // 1. Khởi tạo cây truy vấn trì hoãn (IQueryable)
             IQueryable<Product> query = _context.Products
@@ -30,14 +30,27 @@
                 query = query.Where(p => p.Name.ToLower().Contains(searchLower) ||
                                         (p.Description != null && p.Description.ToLower().Contains(searchLower)));
             }
-            // 4. Chèn điều kiện lọc theo Thương hiệu
 
-            // 5. Chèn điều kiện lọc theo Khoảng giá (Price Range)
-            if (minPrice.HasValue)
-                query = query.Where(p => p.Price >= minPrice.Value);
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId);
+                ViewBag.CurrentCat = categoryId;
+            }
 
-            if (maxPrice.HasValue)
-                query = query.Where(p => p.Price <= maxPrice.Value);
+            // Xử lý bộ lọc giá thả xuống
+            if (!string.IsNullOrEmpty(priceRange))
+            {
+                switch (priceRange)
+                {
+                    case "under5": query = query.Where(p => p.Price < 5000000); break;
+                    case "5to10": query = query.Where(p => p.Price >= 5000000 && p.Price <= 10000000); break;
+                    case "10to15": query = query.Where(p => p.Price > 10000000 && p.Price <= 15000000); break;
+                    case "over15": query = query.Where(p => p.Price > 15000000); break;
+                }
+            }
+
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            return View(await query.ToListAsync());
 
             // 6. Xử lý logic Sắp xếp (Sorting)
             query = sortOrder switch
