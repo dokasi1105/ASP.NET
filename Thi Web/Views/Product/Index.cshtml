@@ -34,10 +34,10 @@
                                 <input type="hidden" name="categoryId" value="@ViewBag.CurrentCat" />
                                 <select name="priceRange" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()">
                                     <option value="">-- Chọn mức giá --</option>
-                                    <option value="under5">Dưới 5 triệu</option>
-                                    <option value="5to10">Từ 5 - 10 triệu</option>
-                                    <option value="10to15">Từ 10 - 15 triệu</option>
-                                    <option value="over15">Trên 15 triệu</option>
+                                    <option value="under5" selected="@(ViewBag.PriceRange == "under5")">Dưới 5 triệu</option>
+                                    <option value="5to10" selected="@(ViewBag.PriceRange == "5to10")">Từ 5 - 10 triệu</option>
+                                    <option value="10to15" selected="@(ViewBag.PriceRange == "10to15")">Từ 10 - 15 triệu</option>
+                                    <option value="over15" selected="@(ViewBag.PriceRange == "over15")">Trên 15 triệu</option>
                                 </select>
                             </form>
                         </div>
