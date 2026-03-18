@@ -9,39 +9,39 @@
         <!-- Sidebar -->
         <div class="container py-4" style="margin-top:70px">
             <form asp-action="Index" method="get" id="filterForm">
-                <div class="row g-4">
-                    <div class="col-lg-3">
-                        <div class="sidebar-filter p-4 rounded" style="background-color: var(--bg-dark-surface); border: 1px solid var(--bg-dark-elevated);">
-                            <h5 class="filter-title mb-4 border-bottom pb-3"><i class="bi bi-funnel text-cyan me-2"></i>Bộ Lọc Tìm Kiếm</h5>
-
-                            @if (ViewBag.SelectedCategory != null)
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <h5 class="text-primary"><i class="bi bi-list"></i> Danh mục sản phẩm</h5>
+                        <div class="list-group">
+                            <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action bg-dark text-white">Tất cả</a>
+                            @if (ViewBag.Categories != null)
                             {
-                                <input type="hidden" name="categoryId" value="@ViewBag.SelectedCategory" />
+                                foreach (var cat in ViewBag.Categories)
+                                {
+                                    <a href="@Url.Action("Index", "Product", new { categoryId = cat.Id })"
+                                       class="list-group-item list-group-item-action bg-dark text-white border-secondary">
+                                        @cat.Name
+                                    </a>
+                                }
                             }
-
-                            <div class="filter-block mb-4">
-                                <label class="form-label fw-bold text-light mb-3">Khoảng Giá (VNĐ)</label>
-                                <div class="d-flex flex-column gap-2">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-dark text-muted border-secondary">Từ</span>
-                                        <input type="number" name="minPrice" class="form-control bg-dark text-light border-secondary" placeholder="0" value="@ViewBag.MinPrice" />
-                                    </div>
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-dark text-muted border-secondary">Đến</span>
-                                        <input type="number" name="maxPrice" class="form-control bg-dark text-light border-secondary" placeholder="Max" value="@ViewBag.MaxPrice" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-outline-info" style="border-color: var(--brand-cyan); color: var(--brand-cyan);">
-                                    <i class="bi bi-funnel-fill me-1"></i> Áp dụng bộ lọc
-                                </button>
-                                <a asp-action="Index" class="btn btn-link text-muted text-decoration-none">Xóa tất cả</a>
-                            </div>
                         </div>
                     </div>
 
+                    <div class="col-md-9">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3>Sản phẩm</h3>
+                            <form method="get" asp-action="Index" class="d-flex gap-2">
+                                <input type="hidden" name="categoryId" value="@ViewBag.CurrentCat" />
+                                <select name="priceRange" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()">
+                                    <option value="">-- Chọn mức giá --</option>
+                                    <option value="under5">Dưới 5 triệu</option>
+                                    <option value="5to10">Từ 5 - 10 triệu</option>
+                                    <option value="10to15">Từ 10 - 15 triệu</option>
+                                    <option value="over15">Trên 15 triệu</option>
+                                </select>
+                            </form>
+                        </div>
+                    </div>
                     <div class="col-lg-9">
                         <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded" style="background-color: var(--bg-dark-surface);">
                             <div class="results-count">
