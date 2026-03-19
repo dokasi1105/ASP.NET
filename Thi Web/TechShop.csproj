@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Thi_Web</RootNamespace>
+    <UserSecretsId>d1d14e67-bb30-4719-b01a-424e9c6b2836</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
