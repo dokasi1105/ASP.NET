@@ -115,4 +115,6 @@ namespace TechShop.Models
         public string? ImageUrl { get; set; }
         public decimal Subtotal => Price * Quantity;
     }
+
+
 }

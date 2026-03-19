@@ -1,86 +1,108 @@
-﻿@model TechShop.Models.Product
+﻿@model TechShop.Services.DummyProduct
 @{
-    ViewData["Title"] = Model.Name;
-    var related = ViewBag.Related as List<TechShop.Models.Product>;
-
-    // CHUYỂN LOGIC TẠO SỐ LIỆU ẢO LÊN TRÊN CÙNG ĐỂ DÙNG CHUNG CHO TOÀN TRANG
-    var randomDetail = new Random(Model.Id);
-    decimal fakeRatingDetail = Math.Round((decimal)(randomDetail.NextDouble() * 1.0 + 4.0), 1);
-    int fakeReviewCountDetail = randomDetail.Next(12, 345);
-
-    string[] fakeBrands = { "Asus", "Dell", "Logitech", "Apple", "Samsung", "Sony" };
-    string fakeBrand = fakeBrands[randomDetail.Next(fakeBrands.Length)];
-
-    int fullStarsDetail = (int)Math.Floor(fakeRatingDetail);
-    bool hasHalfStarDetail = (fakeRatingDetail - fullStarsDetail) >= 0.5m;
-    int emptyStarsDetail = 5 - fullStarsDetail - (hasHalfStarDetail ? 1 : 0);
+    ViewData["Title"] = Model.Title;
+    var related = ViewBag.Related as List<TechShop.Services.DummyProduct>;
+    int fullStars = (int)Math.Floor(Model.Rating);
+    bool hasHalf = (Model.Rating - fullStars) >= 0.5;
+    int emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
 }
 
 <div class="container py-5" style="margin-top:70px">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Sản phẩm</a></li>
-            <li class="breadcrumb-item active">@Model.Name</li>
+            <li class="breadcrumb-item">
+                <a asp-controller="Product" asp-action="Index"
+                       asp-route-category="@Model.Category">
+                    @(DummyJsonService.TechCategories.GetValueOrDefault(Model.Category, Model.Category))
+                </a>
+            </li>
+            <li class="breadcrumb-item active">@Model.Title</li>
         </ol>
     </nav>
 
     <div class="row g-5">
+        <!-- Ảnh -->
         <div class="col-lg-5">
-            <div class="detail-img-wrap">
-                <img src="@(Model.ImageUrl ?? "https://via.placeholder.com/500x400")" alt="@Model.Name" class="detail-img" />
+            <div class="detail-img-wrap mb-3">
+                <img src="@Model.Thumbnail" alt="@Model.Title"
+                     class="detail-img" id="mainImg" />
             </div>
+            @if (Model.Images.Count > 1)
+            {
+                <div class="d-flex gap-2 flex-wrap">
+                    @foreach (var img in Model.Images.Take(5))
+                    {
+                        <img src="@img" alt="thumb"
+                             onclick="document.getElementById('mainImg').src='@img'"
+                             style="width:60px;height:60px;object-fit:cover;border-radius:8px;
+                        cursor:pointer;border:2px solid var(--border);transition:all 0.2s"
+                             onmouseover="this.style.borderColor='var(--primary)'"
+                             onmouseout="this.style.borderColor='var(--border)'" />
+                    }
+                </div>
+            }
         </div>
-        <div class="col-lg-7">
-            <span class="badge badge-cat mb-2">@Model.Category?.Name</span>
-            <h1 class="detail-title">@Model.Name</h1>
 
-            <div class="product-rating-container d-flex align-items-center mb-3">
-                <div class="stars-outer text-warning" style="color: var(--brand-gold)!important; font-size: 1.2rem;">
-                    @for (int i = 0; i < fullStarsDetail; i++)
+        <!-- Thông tin -->
+        <div class="col-lg-7">
+            <span class="badge badge-cat mb-2">
+                @(DummyJsonService.TechCategories.GetValueOrDefault(Model.Category, Model.Category))
+            </span>
+            <h1 class="detail-title">@Model.Title</h1>
+            <p class="text-muted mb-2">Thương hiệu: <strong>@Model.Brand</strong></p>
+
+            <!-- Rating thật -->
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div style="color:var(--warning)">
+                    @for (int i = 0; i < fullStars; i++)
                     {
                         <i class="bi bi-star-fill"></i>
                     }
-                    @if (hasHalfStarDetail)
+                    @if (hasHalf)
                     {
                         <i class="bi bi-star-half"></i>
                     }
-                    @for (int i = 0; i < emptyStarsDetail; i++)
+                    @for (int i = 0; i < emptyStars; i++)
                     {
-                        <i class="bi bi-star text-muted"></i>
+                        <i class="bi bi-star" style="opacity:0.4"></i>
                     }
                 </div>
-                <span class="ms-2 text-white fw-bold">@fakeRatingDetail / 5</span>
-                <span class="ms-2 text-muted">(@fakeReviewCountDetail lượt đánh giá)</span>
-                <span class="ms-3 text-muted border-start border-secondary ps-3">Thương hiệu: <span class="text-cyan fw-bold">@fakeBrand</span></span>
+                <span class="text-muted">@Model.Rating.ToString("N1") / 5</span>
+                <span class="badge @(Model.Stock > 10 ? "bg-success" : Model.Stock > 0 ? "bg-warning" : "bg-danger")">
+                    @(Model.Stock > 0 ? $"Còn {Model.Stock} sản phẩm" : "Hết hàng")
+                </span>
             </div>
 
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <span class="detail-price">@Model.Price.ToString("N0") ₫</span>
-                @if (Model.Stock > 0)
+            <!-- Giá -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <span class="detail-price">@Model.DiscountedPriceVnd.ToString("N0") ₫</span>
+                @if (Model.DiscountPercentage > 0)
                 {
-                    <span class="badge bg-success">Còn hàng (@Model.Stock)</span>
-                }
-                else
-                {
-                    <span class="badge bg-danger">Hết hàng</span>
+                    <span class="text-muted text-decoration-line-through fs-5">
+                        @Model.PriceVnd.ToString("N0") ₫
+                    </span>
+                    <span class="badge bg-danger fs-6">-@((int)Model.DiscountPercentage)%</span>
                 }
             </div>
+
             <div class="detail-desc mb-4">
                 <p>@Model.Description</p>
             </div>
-            <div class="detail-meta mb-4">
-                <div class="meta-row"><span class="meta-label">Danh mục:</span><span>@Model.Category?.Name</span></div>
-                <div class="meta-row"><span class="meta-label">Mã sản phẩm:</span><span>TS-@Model.Id.ToString("D4")</span></div>
-                <div class="meta-row"><span class="meta-label">Ngày nhập:</span><span>@Model.CreatedAt.ToString("dd/MM/yyyy")</span></div>
-            </div>
+
             @if (Model.Stock > 0)
             {
-                <form asp-controller="Product" asp-action="AddToCart" method="post" class="d-flex gap-3 align-items-center">
+                <form asp-controller="Product" asp-action="AddToCart" method="post"
+                      class="d-flex gap-3 align-items-center">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="productId" value="@Model.Id" />
+                    <input type="hidden" name="title" value="@Model.Title" />
+                    <input type="hidden" name="priceVnd" value="@Model.DiscountedPriceVnd" />
+                    <input type="hidden" name="thumbnail" value="@Model.Thumbnail" />
                     <div class="qty-control">
                         <button type="button" onclick="changeQty(-1)">-</button>
-                        <input type="number" name="quantity" id="qty" value="1" min="1" max="@Model.Stock" />
+                        <input type="number" name="quantity" id="qty"
+                               value="1" min="1" max="@Model.Stock" />
                         <button type="button" onclick="changeQty(1)">+</button>
                     </div>
                     <button type="submit" class="btn btn-primary btn-lg">
@@ -88,14 +110,22 @@
                     </button>
                 </form>
             }
+            else
+            {
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="bi bi-x-circle me-2"></i>Hết hàng
+                </button>
+            }
+
             <div class="detail-badges mt-4">
-                <span><i class="bi bi-shield-check text-success"></i> Bảo hành 12 tháng</span>
-                <span><i class="bi bi-truck text-primary"></i> Giao nhanh</span>
+                <span><i class="bi bi-shield-check text-success"></i> Hàng chính hãng</span>
+                <span><i class="bi bi-truck text-primary"></i> Giao hàng toàn quốc</span>
                 <span><i class="bi bi-arrow-repeat text-warning"></i> Đổi trả 30 ngày</span>
             </div>
         </div>
     </div>
 
+    <!-- Sản phẩm liên quan -->
     @if (related != null && related.Any())
     {
         <div class="mt-5">
@@ -106,13 +136,15 @@
                     <div class="col-6 col-md-3">
                         <div class="product-card">
                             <div class="product-img-wrap">
-                                <img src="@(p.ImageUrl ?? "https://via.placeholder.com/300")" alt="@p.Name" class="product-img" />
+                                <img src="@p.Thumbnail" alt="@p.Title" class="product-img" loading="lazy" />
                             </div>
                             <div class="product-body">
-                                <h6 class="product-name">@p.Name</h6>
+                                <p class="product-cat">@p.Brand</p>
+                                <h6 class="product-name">@p.Title</h6>
                                 <div class="product-footer">
-                                    <span class="product-price">@p.Price.ToString("N0") ₫</span>
-                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@p.Id" class="btn-add-cart">
+                                    <span class="product-price">@p.DiscountedPriceVnd.ToString("N0") ₫</span>
+                                    <a asp-controller="Product" asp-action="Detail"
+                                           asp-route-id="@p.Id" class="btn-add-cart">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </div>
@@ -125,36 +157,13 @@
     }
 </div>
 
-<script type="application/ld+json">
-    {
-      "@@context": "https://schema.org/",
-      "@@type": "Product",
-      "name": "@Html.Raw(Model.Name)",
-      "image": "https://techshop.vn/images/products/@Model.Id",
-      "brand": {
-        "@@type": "Brand",
-        "name": "@Html.Raw(fakeBrand)"
-      },
-      "aggregateRating": {
-        "@@type": "AggregateRating",
-        "ratingValue": "@fakeRatingDetail.ToString(System.Globalization.CultureInfo.InvariantCulture)",
-        "reviewCount": "@fakeReviewCountDetail"
-      },
-      "offers": {
-        "@@type": "Offer",
-        "priceCurrency": "VND",
-        "price": "@Model.Price",
-        "availability": "https://schema.org/InStock"
-      }
-    }
-</script>
-
 @section Scripts {
     <script>
         function changeQty(delta) {
             const input = document.getElementById('qty');
             const val = parseInt(input.value) + delta;
-            if (val >= 1 && val <= parseInt(input.max)) input.value = val;
+            const max = parseInt(input.max);
+            if (val >= 1 && val <= max) input.value = val;
         }
     </script>
 }

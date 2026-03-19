@@ -2,104 +2,109 @@
 {
     public class ProductController : Controller
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDummyJsonService _dummyJson;
         private readonly ICartService _cartService;
 
-        public ProductController(ApplicationDbContext context, ICartService cartService)
+        public ProductController(IDummyJsonService dummyJson, ICartService cartService)
         {
-            _context = context;
+            _dummyJson = dummyJson;
             _cartService = cartService;
         }
 
-        // Cập nhật phương thức Index trong ProductController.cs
-        public async Task<IActionResult> Index(int? categoryId, string? search, string? priceRange, string? sortOrder)
+        public async Task<IActionResult> Index(
+            string? category,
+            string? search,
+            string? priceRange,
+            string? sortOrder,
+            int page = 1)
         {
-            // 1. Khởi tạo truy vấn
-            IQueryable<Product> query = _context.Products.Include(p => p.Category).Where(p => p.IsActive);
+            // Đảm bảo page hợp lệ
+            if (page < 1) page = 1;
 
-            // 2. Lọc theo Danh mục
-            if (categoryId.HasValue)
-            {
-                query = query.Where(p => p.CategoryId == categoryId.Value);
-            }
+            string activeCategory = string.IsNullOrEmpty(category)
+                ? "smartphones" : category;
 
-            // 3. Lọc theo Chuỗi tìm kiếm
+            DummyResult result;
+
             if (!string.IsNullOrEmpty(search))
-            {
-                string searchLower = search.ToLower();
-                query = query.Where(p => p.Name.ToLower().Contains(searchLower) ||
-                                         (p.Description != null && p.Description.ToLower().Contains(searchLower)));
-            }
+                result = await _dummyJson.SearchAsync(search, page, 12);
+            else
+                result = await _dummyJson.GetByCategoryAsync(activeCategory, page, 12);
 
-            // 4. Lọc theo mức giá (Dropdown)
+            var products = result.Products;
+
+            // Lọc giá (client-side)
             if (!string.IsNullOrEmpty(priceRange))
             {
-                switch (priceRange)
+                products = priceRange switch
                 {
-                    case "under5": query = query.Where(p => p.Price < 5000000); break;
-                    case "5to10": query = query.Where(p => p.Price >= 5000000 && p.Price <= 10000000); break;
-                    case "10to15": query = query.Where(p => p.Price > 10000000 && p.Price <= 15000000); break;
-                    case "over15": query = query.Where(p => p.Price > 15000000); break;
-                }
+                    "under5" => products.Where(p => p.DiscountedPriceVnd < 5_000_000).ToList(),
+                    "5to10" => products.Where(p => p.DiscountedPriceVnd >= 5_000_000 && p.DiscountedPriceVnd <= 10_000_000).ToList(),
+                    "10to15" => products.Where(p => p.DiscountedPriceVnd > 10_000_000 && p.DiscountedPriceVnd <= 15_000_000).ToList(),
+                    "over15" => products.Where(p => p.DiscountedPriceVnd > 15_000_000).ToList(),
+                    _ => products
+                };
             }
 
-            // 5. Sắp xếp (Sorting)
-            query = sortOrder switch
+            // Sắp xếp
+            products = sortOrder switch
             {
-                "price_asc" => query.OrderBy(p => p.Price),
-                "price_desc" => query.OrderByDescending(p => p.Price),
-                "name_asc" => query.OrderBy(p => p.Name),
-                _ => query.OrderByDescending(p => p.CreatedAt) // Mặc định mới nhất
+                "price_asc" => products.OrderBy(p => p.DiscountedPriceVnd).ToList(),
+                "price_desc" => products.OrderByDescending(p => p.DiscountedPriceVnd).ToList(),
+                "name_asc" => products.OrderBy(p => p.Title).ToList(),
+                "rating" => products.OrderByDescending(p => p.Rating).ToList(),
+                _ => products
             };
 
-            // 6. THỰC THI CÂU LỆNH SQL (Phải để ở CÙNG, sau khi đã ráp xong mọi bộ lọc)
-            var products = await query.AsNoTracking().ToListAsync();
+            // Truyền page/totalPages đúng từ API response
+            int totalPages = result.Total > 0 && result.Limit > 0
+      ? (int)Math.Ceiling((double)result.Total / 12.0)
+      : 1;
 
-            // 7. Tải danh mục cho thanh Sidebar
-            ViewBag.Categories = await _context.Categories.AsNoTracking().ToListAsync();
 
-            // 8. Lưu trạng thái để giữ giao diện UI không bị reset
-            ViewBag.SelectedCategory = categoryId;
-            ViewBag.CurrentCat = categoryId; // Biến này dùng cho thẻ hidden
-            ViewBag.Search = search;
-            ViewBag.SortOrder = sortOrder;
-            ViewBag.PriceRange = priceRange; // Thêm biến này để giữ Select Dropdown
+            // Giới hạn totalPages hợp lý
+            if (totalPages < 1) totalPages = 1;
+            if (page > totalPages) page = totalPages;
+
+            ViewBag.Categories = DummyJsonService.TechCategories;
+            ViewBag.Category = activeCategory;
+            ViewBag.Search = search ?? "";
+            ViewBag.SortOrder = sortOrder ?? "";
+            ViewBag.PriceRange = priceRange ?? "";
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
 
             return View(products);
         }
+
         public async Task<IActionResult> Detail(int id)
         {
-            var product = await _context.Products
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
+            var product = await _dummyJson.GetDetailAsync(id);
             if (product == null) return NotFound();
 
-            var related = await _context.Products
-                .Where(p => p.CategoryId == product.CategoryId && p.Id != id && p.IsActive)
-                .Take(4).ToListAsync();
+            var related = await _dummyJson.GetByCategoryAsync(product.Category, 1, 5);
+            ViewBag.Related = related.Products.Where(p => p.Id != id).Take(4).ToList();
 
-            ViewBag.Related = related;
             return View(product);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddToCart(int productId, int quantity = 1)
+        public IActionResult AddToCart(
+            int productId, string title,
+            decimal priceVnd, string? thumbnail,
+            int quantity = 1)
         {
-            var product = _context.Products.Find(productId);
-            if (product == null) return NotFound();
-
             _cartService.AddToCart(HttpContext.Session, new CartItem
             {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                Price = product.Price,
+                ProductId = productId,
+                ProductName = title,
+                Price = priceVnd,
                 Quantity = quantity,
-                ImageUrl = product.ImageUrl
+                ImageUrl = thumbnail
             });
 
-            TempData["Success"] = $"Đã thêm \"{product.Name}\" vào giỏ hàng!";
+            TempData["Success"] = $"Đã thêm \"{title}\" vào giỏ hàng!";
             return RedirectToAction("Index", "Cart");
         }
     }
