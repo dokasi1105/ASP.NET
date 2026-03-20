@@ -8,12 +8,20 @@ namespace TechShop.Data
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options) { }
-
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        // Database mới nha Việt Anh:
+        public DbSet<ProductImage> ProductImages { get; set; }
+        public DbSet<ProductSpecification> ProductSpecifications { get; set; }
+        public DbSet<WarrantyPackage> WarrantyPackages { get; set; }
+        public DbSet<Wishlist> Wishlists { get; set; }
+        public DbSet<ServiceTicket> ServiceTickets { get; set; }
+        public DbSet<StoreBranch> StoreBranches { get; set; }
+        public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<StoreInventory> StoreInventories { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
