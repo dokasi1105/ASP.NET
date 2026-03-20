@@ -84,5 +84,53 @@ namespace TechShop.Services
                 await client.DisconnectAsync(true);
             }
         }
+        // Thêm vào IEmailService
+        public interface IEmailService
+        {
+            Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order);
+            Task SendWelcomeEmailAsync(string toEmail, string customerName);
+            Task SendPasswordResetEmailAsync(string toEmail, string resetLink);
+        }
+
+        // Thêm vào class EmailService
+        public async Task SendWelcomeEmailAsync(string toEmail, string customerName)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("TechShop Store", _config["SmtpSettings:SenderEmail"]));
+            message.To.Add(new MailboxAddress(customerName, toEmail));
+            message.Subject = "Chào mừng bạn đến với TechShop!";
+
+            var builder = new BodyBuilder { HtmlBody = $"<h3>Xin chào {customerName},</h3><p>Cảm ơn bạn đã đăng ký tài khoản tại TechShop. Chúc bạn có trải nghiệm mua sắm tuyệt vời!</p>" };
+            message.Body = builder.ToMessageBody();
+
+            await SendEmailAsync(message);
+        }
+
+        public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("TechShop Store", _config["SmtpSettings:SenderEmail"]));
+            message.To.Add(new MailboxAddress("", toEmail));
+            message.Subject = "Khôi phục mật khẩu TechShop";
+
+            var builder = new BodyBuilder { HtmlBody = $"<h3>Yêu cầu đặt lại mật khẩu</h3><p>Vui lòng click vào link sau để đặt lại mật khẩu của bạn: <a href='{resetLink}'>Bấm vào đây</a></p><p>Link này sẽ hết hạn sau 15 phút. Nếu không phải bạn yêu cầu, hãy bỏ qua email này.</p>" };
+            message.Body = builder.ToMessageBody();
+
+            await SendEmailAsync(message);
+        }
+
+        // Hàm phụ trợ dùng chung để giảm code lặp lại
+        private async Task SendEmailAsync(MimeMessage message)
+        {
+            using var client = new SmtpClient();
+            try
+            {
+                await client.ConnectAsync(_config["SmtpSettings:Server"], int.Parse(_config["SmtpSettings:Port"]), SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(_config["SmtpSettings:Username"], _config["SmtpSettings:Password"]);
+                await client.SendAsync(message);
+            }
+            catch (Exception ex) { Console.WriteLine($"Lỗi gửi Email: {ex.Message}"); }
+            finally { await client.DisconnectAsync(true); }
+        }
     }
 }
