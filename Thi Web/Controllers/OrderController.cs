@@ -1,4 +1,6 @@
-﻿namespace TechShop.Controllers
+﻿using TechShop.Services;
+
+namespace TechShop.Controllers
 {
     [Authorize]
     public class OrderController : Controller
@@ -6,12 +8,14 @@
         private readonly ApplicationDbContext _context;
         private readonly ICartService _cartService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailService _emailService;
 
-        public OrderController(ApplicationDbContext context, ICartService cartService, UserManager<ApplicationUser> userManager)
+        public OrderController(ApplicationDbContext context, ICartService cartService, UserManager<ApplicationUser> userManager, IEmailService emailService)
         {
             _context = context;
             _cartService = cartService;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -79,11 +83,16 @@
                 user.MembershipTier = "Silver";  // Bạc
             else
                 user.MembershipTier = "Bronze";  // Đồng
-
             // Lưu cập nhật vào user
             await _userManager.UpdateAsync(user);
 
-            // Xóa giỏ hàng và chuyển hướng
+            // ====> HÀM GỬI EMAIL <====
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                // Để SendOrderConfirmationAsync chạy bất đồng bộ
+                // không cần await nếu không muốn giao diện bị treo chờ gửi email
+                _ = _emailService.SendOrderConfirmationAsync(user.Email, user.UserName ?? "Khách hàng", order);
+            }
             _cartService.ClearCart(HttpContext.Session);
             return RedirectToAction(nameof(Completed), new { id = order.Id });
         }
