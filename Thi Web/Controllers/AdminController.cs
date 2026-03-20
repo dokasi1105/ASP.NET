@@ -13,6 +13,7 @@ namespace TechShop.Controllers
     public class AdminProductController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         public AdminProductController(ApplicationDbContext context) => _context = context;
 
         public async Task<IActionResult> Index()
@@ -200,6 +201,20 @@ namespace TechShop.Controllers
                 TempData["Success"] = "Đã xác nhận thanh toán POS thành công!";
             }
             return RedirectToAction("Detail", new { id = orderId });
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin")] // Chỉ Admin mới được sửa điểm
+        public async Task<IActionResult> UpdateLoyalty(string userId, int points, string tier)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                user.LoyaltyPoints = points;
+                user.MembershipTier = tier;
+                await _userManager.UpdateAsync(user);
+                TempData["Success"] = $"Đã cập nhật thành viên {user.UserName} thành thẻ {tier} với {points} điểm.";
+            }
+            return RedirectToAction(nameof(Index));
         }
     }
 
