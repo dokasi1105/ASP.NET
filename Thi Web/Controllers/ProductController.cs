@@ -12,94 +12,97 @@ namespace TechShop.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ICartService _cartService; // Thêm CartService
 
-        public ProductController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        // Hàm khởi tạo để Inject
+        public ProductController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ICartService cartService)
         {
             _context = context;
             _userManager = userManager;
+            _cartService = cartService;
         }
-        public async Task<IActionResult> Index(
-            string? category,
-            string? search,
-            string? priceRange,
-            string? sortOrder,
-            int page = 1)
+
+        public async Task<IActionResult> Index(string? category, string? search, string? sortOrder, int page = 1)
         {
-            // Đảm bảo page hợp lệ
-            if (page < 1) page = 1;
-            string activeCategory = string.IsNullOrEmpty(category)
-                ? "smartphones" : category;
-            DummyResult result;
+            int pageSize = 12;
+            var query = _context.Products.Include(p => p.Category).AsQueryable();
+            // Lọc theo tìm kiếm
             if (!string.IsNullOrEmpty(search))
-                result = await _dummyJson.SearchAsync(search, page, 12);
-            else
-                result = await _dummyJson.GetByCategoryAsync(activeCategory, page, 12);
-            var products = result.Products;
-            // Lọc giá
-            if (!string.IsNullOrEmpty(priceRange))
             {
-                products = priceRange switch
-                {
-                    "under5" => products.Where(p => p.DiscountedPriceVnd < 5_000_000).ToList(),
-                    "5to10" => products.Where(p => p.DiscountedPriceVnd >= 5_000_000 && p.DiscountedPriceVnd <= 10_000_000).ToList(),
-                    "10to15" => products.Where(p => p.DiscountedPriceVnd > 10_000_000 && p.DiscountedPriceVnd <= 15_000_000).ToList(),
-                    "over15" => products.Where(p => p.DiscountedPriceVnd > 15_000_000).ToList(),
-                    _ => products
-                };
+                query = query.Where(p => p.Name.Contains(search) || (p.Description != null && p.Description.Contains(search)));
+                ViewBag.Search = search;
             }
             // Sắp xếp
-            products = sortOrder switch
+            query = sortOrder switch
             {
-                "price_asc" => products.OrderBy(p => p.DiscountedPriceVnd).ToList(),
-                "price_desc" => products.OrderByDescending(p => p.DiscountedPriceVnd).ToList(),
-                "name_asc" => products.OrderBy(p => p.Title).ToList(),
-                "rating" => products.OrderByDescending(p => p.Rating).ToList(),
-                _ => products
+                "price_asc" => query.OrderBy(p => p.DiscountPrice ?? p.Price),
+                "price_desc" => query.OrderByDescending(p => p.DiscountPrice ?? p.Price),
+                _ => query.OrderByDescending(p => p.CreatedAt)
             };
-            // Truyền page/totalPages đúng từ API response
-            int totalPages = result.Total > 0 && result.Limit > 0
-      ? (int)Math.Ceiling((double)result.Total / 12.0)
-      : 1;
-
-            // Giới hạn totalPages hợp lý
-            if (totalPages < 1) totalPages = 1;
-            if (page > totalPages) page = totalPages;
-            ViewBag.Categories = DummyJsonService.TechCategories;
-            ViewBag.Category = activeCategory;
-            ViewBag.Search = search ?? "";
-            ViewBag.SortOrder = sortOrder ?? "";
-            ViewBag.PriceRange = priceRange ?? "";
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var products = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
             ViewBag.Page = page;
-            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalPages = totalPages > 0 ? totalPages : 1;
             return View(products);
         }
 
         public async Task<IActionResult> Detail(int id)
         {
-            var product = await _dummyJson.GetDetailAsync(id);
+            // Lấy chi tiết từ DB thật, bao gồm cả Gói bảo hành và Thông số
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.Specifications)
+                .Include(p => p.WarrantyPackages)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (product == null) return NotFound();
-            var related = await _dummyJson.GetByCategoryAsync(product.Category, 1, 5);
-            ViewBag.Related = related.Products.Where(p => p.Id != id).Take(4).ToList();
+            ViewBag.Related = await _context.Products
+                .Where(p => p.CategoryId == product.CategoryId && p.Id != id)
+                .Take(4)
+                .ToListAsync();
             return View(product);
         }
 
+        // Xử lý Bảo hành và Thu cũ đổi mới
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult AddToCart(
-            int productId, string title,
-            decimal priceVnd, string? thumbnail,
-            int quantity = 1)
+        public async Task<IActionResult> AddToCart(int productId, int quantity = 1, int warrantyId = 0, bool isTradeIn = false)
         {
+            var product = await _context.Products.Include(p => p.WarrantyPackages).FirstOrDefaultAsync(p => p.Id == productId);
+            if (product == null) return NotFound();
+            // Lấy giá thực tế
+            decimal finalPrice = product.DiscountPrice ?? product.Price;
+            string extraOptions = "";
+            // Xử lý cộng tiền Gói bảo hành
+            if (warrantyId > 0)
+            {
+                var warranty = product.WarrantyPackages.FirstOrDefault(w => w.Id == warrantyId);
+                if (warranty != null)
+                {
+                    finalPrice += warranty.AdditionalPrice;
+                    extraOptions += $" [+ {warranty.PackageName}]";
+                }
+            }
+
+            // Xử lý Thu cũ đổi mới
+            if (isTradeIn && product.IsTradeInEligible)
+            {
+                // Tạm thời trừ đi 1 khoản trợ giá mặc định (điều chỉnh logic sau)
+                decimal tradeInDiscount = (product.MaxTradeInValue ?? 0) * 0.3m; // Ước tính trợ giá 30% mức tối đa
+                finalPrice -= tradeInDiscount;
+                extraOptions += " [Thu cũ đổi mới]";
+            }
             _cartService.AddToCart(HttpContext.Session, new CartItem
             {
-                ProductId = productId,
-                ProductName = title,
-                Price = priceVnd,
+                ProductId = product.Id,
+                ProductName = product.Name + extraOptions,
+                Price = finalPrice > 0 ? finalPrice : 0,
                 Quantity = quantity,
-                ImageUrl = thumbnail
+                ImageUrl = product.ImageUrl
             });
-
-            TempData["Success"] = $"Đã thêm \"{title}\" vào giỏ hàng!";
+            TempData["Success"] = $"Đã thêm \"{product.Name}\" vào giỏ hàng!";
             return RedirectToAction("Index", "Cart");
         }
 
@@ -147,7 +150,6 @@ namespace TechShop.Controllers
             return View(products);
         }
 
-        // DANH SÁCH YÊU THÍCH
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> ToggleWishlist(int productId)
