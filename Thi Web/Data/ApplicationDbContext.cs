@@ -13,6 +13,8 @@ namespace TechShop.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<CommissionLog> CommissionLogs { get; set; }
+
         // Database mới nha Việt Anh:
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<ProductSpecification> ProductSpecifications { get; set; }

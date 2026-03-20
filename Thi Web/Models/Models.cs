@@ -209,4 +209,17 @@ namespace TechShop.Models
         public string? ImageUrl { get; set; }
         public decimal Subtotal => Price * Quantity;
     }
+    // Ghi chép lịch sử nhận/tiêu hoa hồng
+    public class CommissionLog
+    {
+        public int Id { get; set; }
+        public string UserId { get; set; } = string.Empty;
+        public ApplicationUser? User { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Amount { get; set; }
+        public string Description { get; set; } = string.Empty; // VD: "Hoa hồng từ đơn hàng #123 của bạn bè"
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime ExpiryDate { get; set; } = new DateTime(2026, 12, 31); // Thời hạn mặc định
+        public bool IsUsed { get; set; } = false;
+    }
 }

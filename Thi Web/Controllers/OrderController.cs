@@ -65,8 +65,26 @@
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
-            _cartService.ClearCart(HttpContext.Session);
+            // TÍCH ĐIỂM VÀ NÂNG HẠNG THẺ CHO NGƯỜI DÙNG
+            // Tỷ lệ quy đổi: Cứ 100,000 VNĐ = 1 điểm Loyalty
+            int earnedPoints = (int)(order.TotalAmount / 100000);
+            user.LoyaltyPoints += earnedPoints;
 
+            // Cập nhật hạng thẻ dựa trên tổng điểm tích lũy
+            if (user.LoyaltyPoints >= 5000)
+                user.MembershipTier = "Diamond"; // Kim cương
+            else if (user.LoyaltyPoints >= 2000)
+                user.MembershipTier = "Gold";    // Vàng
+            else if (user.LoyaltyPoints >= 500)
+                user.MembershipTier = "Silver";  // Bạc
+            else
+                user.MembershipTier = "Bronze";  // Đồng
+
+            // Lưu cập nhật vào user
+            await _userManager.UpdateAsync(user);
+
+            // Xóa giỏ hàng và chuyển hướng
+            _cartService.ClearCart(HttpContext.Session);
             return RedirectToAction(nameof(Completed), new { id = order.Id });
         }
 
