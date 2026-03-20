@@ -63,7 +63,6 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddHttpClient<IDummyJsonService, DummyJsonService>();
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
