@@ -202,20 +202,6 @@ namespace TechShop.Controllers
             }
             return RedirectToAction("Detail", new { id = orderId });
         }
-        [HttpPost]
-        [Authorize(Roles = "Admin")] // Chỉ Admin mới được sửa điểm
-        public async Task<IActionResult> UpdateLoyalty(string userId, int points, string tier)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
-            {
-                user.LoyaltyPoints = points;
-                user.MembershipTier = tier;
-                await _userManager.UpdateAsync(user);
-                TempData["Success"] = $"Đã cập nhật thành viên {user.UserName} thành thẻ {tier} với {points} điểm.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
     }
 
     // ================================================================
@@ -281,6 +267,20 @@ namespace TechShop.Controllers
             }
             TempData["Success"] = "Cập nhật quyền thành công!";
             return RedirectToAction(nameof(AssignRole), new { userId });
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken] // Thêm bảo mật chống CSRF
+        public async Task<IActionResult> UpdateLoyalty(string userId, int points, string tier)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                user.LoyaltyPoints = points;
+                user.MembershipTier = tier;
+                await _userManager.UpdateAsync(user);
+                TempData["Success"] = $"Đã cập nhật thành viên {user.UserName} thành thẻ {tier} với {points} điểm.";
+            }
+            return RedirectToAction(nameof(Index));
         }
     }
 
