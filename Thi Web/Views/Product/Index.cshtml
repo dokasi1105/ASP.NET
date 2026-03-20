@@ -2,19 +2,17 @@
 @{
     ViewData["Title"] = "Sản phẩm";
 
-    // Tạo danh sách Category tĩnh (hoặc bạn có thể truyền từ ViewBag.Categories ở Controller)
-    var categories = new Dictionary<string, string>
-    {
-        { "smartphones", "Điện thoại" },
-        { "laptops", "Laptop" },
-        { "pc-parts", "Linh kiện PC" },
-        { "accessories", "Phụ kiện" },
-        { "tablets", "Máy tính bảng" }
-    };
+    // Lấy categories từ DB qua ViewBag (controller truyền List<Category>)
+    var categories = ViewBag.Categories as List<TechShop.Models.Category>;
+
+    // activeCategory là int? vì controller dùng CategoryId
+    int? activeCategory = ViewBag.Category as int?;
 
     int currentPage = ViewBag.Page is int p ? p : 1;
     int totalPages = ViewBag.TotalPages is int tp ? tp : 1;
-    string activeCategory = ViewBag.Category as string ?? "";
+    string currentSearch = ViewBag.Search as string ?? "";
+    string currentSort = ViewBag.SortOrder as string ?? "";
+    string currentPrice = ViewBag.PriceRange as string ?? "";
 
     var priceOptions = new Dictionary<string, string>
     {
@@ -25,19 +23,23 @@
         { "over15",  "Trên 15 triệu"  }
     };
 
+    // Icon theo tên category trong DB
     var catIcons = new Dictionary<string, string>
     {
-        { "smartphones", "bi-phone" },
-        { "laptops", "bi-laptop" },
-        { "pc-parts", "bi-cpu" },
-        { "tablets", "bi-tablet" },
-        { "accessories", "bi-earbuds" }
+        { "Laptop",       "bi-laptop"       },
+        { "Chuột",        "bi-mouse"        },
+        { "Bàn phím",     "bi-keyboard"     },
+        { "Màn hình",     "bi-display"      },
+        { "Linh kiện PC", "bi-cpu"          },
+        { "Tai nghe",     "bi-headphones"   },
+        { "Ổ cứng",       "bi-hdd"          },
+        { "Ghế gaming",   "bi-person-workspace" }
     };
 
-    string catLabel = string.IsNullOrEmpty(activeCategory) ? "Tất cả sản phẩm" : (categories.GetValueOrDefault(activeCategory, activeCategory));
-    string currentSearch = ViewBag.Search as string ?? "";
-    string currentSort = ViewBag.SortOrder as string ?? "";
-    string currentPrice = ViewBag.PriceRange as string ?? "";
+    // Tên danh mục hiện tại để hiển thị header
+    string catLabel = activeCategory.HasValue
+        ? (categories?.FirstOrDefault(c => c.Id == activeCategory.Value)?.Name ?? "Sản phẩm")
+        : "Tất cả sản phẩm";
 }
 
 <style>
@@ -646,10 +648,12 @@
         }
 </style>
 
+<!-- HEADER -->
 <div class="shop-header">
     <div class="container">
         <div class="shop-header-label">
-            <i class="bi @catIcons.GetValueOrDefault(activeCategory, "bi-box")"></i> TechShop Store
+            <i class="bi @(activeCategory.HasValue && categories != null ? catIcons.GetValueOrDefault(categories.FirstOrDefault(c => c.Id == activeCategory.Value)?.Name ?? "", "bi-shop") : "bi-shop")"></i>
+            TechShop Store
         </div>
         <h1 class="shop-header-title">
             @if (!string.IsNullOrEmpty(currentSearch))
@@ -670,72 +674,107 @@
 <div class="container">
     <div class="shop-layout">
         <aside class="shop-sidebar">
+
+            <!-- Tìm kiếm -->
             <div class="filter-card">
                 <div class="filter-card-head"><i class="bi bi-search"></i> Tìm kiếm</div>
                 <div class="filter-card-body">
                     <form asp-controller="Product" asp-action="Index" method="get">
-                        <input type="hidden" name="category" value="@activeCategory" />
+                        @if (activeCategory.HasValue)
+                        {
+                            <input type="hidden" name="category" value="@activeCategory" />
+                        }
                         <div class="search-wrap">
-                            <input type="text" name="search" placeholder="Tìm sản phẩm..." value="@currentSearch" />
+                            <input type="text" name="search"
+                                   placeholder="Tìm sản phẩm..."
+                                   value="@currentSearch" />
                             <button type="submit"><i class="bi bi-search"></i></button>
                         </div>
                     </form>
                 </div>
             </div>
 
+            <!-- Danh mục từ DB -->
             <div class="filter-card">
                 <div class="filter-card-head"><i class="bi bi-grid"></i> Danh mục</div>
                 <div class="filter-card-body">
                     <ul class="filter-nav">
                         <li>
-                            <a asp-controller="Product" asp-action="Index" class="filter-nav-item @(string.IsNullOrEmpty(activeCategory) ? "active" : "")">
-                                <span class="fi-left"><i class="bi bi-boxes"></i> Tất cả</span>
+                            <a asp-controller="Product" asp-action="Index"
+                                   class="filter-nav-item @(!activeCategory.HasValue && string.IsNullOrEmpty(currentSearch) ? "active" : "")">
+                                <span class="fi-left"><i class="bi bi-boxes"></i> Tất cả sản phẩm</span>
                             </a>
                         </li>
-                        @foreach (var cat in categories)
+                        @if (categories != null)
                         {
-                            <li>
-                                <a asp-controller="Product" asp-action="Index" asp-route-category="@cat.Key"
-                                   class="filter-nav-item @(activeCategory == cat.Key ? "active" : "")">
-                                    <span class="fi-left"><i class="bi @catIcons.GetValueOrDefault(cat.Key, "bi-tag")"></i> @cat.Value</span>
-                                </a>
-                            </li>
+                            @foreach (var cat in categories)
+                            {
+                                <li>
+                                    <a asp-controller="Product" asp-action="Index"
+                                           asp-route-category="@cat.Id"
+                                           class="filter-nav-item @(activeCategory == cat.Id ? "active" : "")">
+                                        <span class="fi-left">
+                                            <i class="bi @catIcons.GetValueOrDefault(cat.Name, "bi-tag")"></i>
+                                            @cat.Name
+                                        </span>
+                                    </a>
+                                </li>
+                            }
                         }
                     </ul>
                 </div>
             </div>
 
+            <!-- Lọc giá -->
             <div class="filter-card">
                 <div class="filter-card-head"><i class="bi bi-cash-stack"></i> Mức giá</div>
                 <div class="filter-card-body">
                     <ul class="filter-nav">
                         @foreach (var opt in priceOptions)
                         {
-                            bool isActive = currentPrice == opt.Key || (opt.Key == "" && string.IsNullOrEmpty(currentPrice));
+                            bool isActive = currentPrice == opt.Key ||
+                                            (opt.Key == "" && string.IsNullOrEmpty(currentPrice));
                             <li>
                                 <a asp-controller="Product" asp-action="Index"
-                                   asp-route-category="@activeCategory" asp-route-search="@currentSearch"
-                                   asp-route-priceRange="@opt.Key" asp-route-sortOrder="@currentSort"
-                                   class="filter-nav-item @(isActive ? "active" : "")">
-                                    <span class="fi-left"><i class="bi bi-currency-dollar"></i> @opt.Value</span>
+                                       asp-route-category="@activeCategory"
+                                       asp-route-search="@currentSearch"
+                                       asp-route-priceRange="@opt.Key"
+                                       asp-route-sortOrder="@currentSort"
+                                       class="filter-nav-item @(isActive ? "active" : "")">
+                                    <span class="fi-left">
+                                        <i class="bi bi-currency-dollar"></i> @opt.Value
+                                    </span>
                                 </a>
                             </li>
                         }
                     </ul>
                 </div>
             </div>
+
         </aside>
 
         <main>
+            <!-- Toolbar -->
             <div class="shop-toolbar">
                 <div class="toolbar-info">
+                    @if (activeCategory.HasValue)
+                    {
+                        <span class="toolbar-tag">
+                            <i class="bi bi-tag"></i> @catLabel
+                        </span>
+                    }
                     @if (!string.IsNullOrEmpty(currentPrice))
                     {
-                        <span class="toolbar-tag"><i class="bi bi-funnel-fill"></i> @priceOptions.GetValueOrDefault(currentPrice, "")</span>
+                        <span class="toolbar-tag">
+                            <i class="bi bi-funnel-fill"></i>
+                            @priceOptions.GetValueOrDefault(currentPrice, "")
+                        </span>
                     }
                     @if (!string.IsNullOrEmpty(currentSearch))
                     {
-                        <span class="toolbar-tag sec"><i class="bi bi-search"></i> "@currentSearch"</span>
+                        <span class="toolbar-tag sec">
+                            <i class="bi bi-search"></i> "@currentSearch"
+                        </span>
                     }
                     <span class="toolbar-count"><strong>@Model.Count</strong> sản phẩm</span>
                 </div>
@@ -749,10 +788,12 @@
                         <option value="" selected="@(currentSort == "")">Mới nhất</option>
                         <option value="price_asc" selected="@(currentSort == "price_asc")">Giá thấp → cao</option>
                         <option value="price_desc" selected="@(currentSort == "price_desc")">Giá cao → thấp</option>
+                        <option value="name_asc" selected="@(currentSort == "name_asc")">Tên A → Z</option>
                     </select>
                 </form>
             </div>
 
+            <!-- Products -->
             @if (!Model.Any())
             {
                 <div class="empty-state">
@@ -769,18 +810,19 @@
                 <div class="products-grid">
                     @foreach (var item in Model)
                     {
-                        // Giả lập rating vì hiện chưa có review thật
-                        var random = new Random(item.Id);
-                        decimal rating = Math.Round((decimal)(random.NextDouble() * 1.0 + 4.0), 1);
+                        var rng = new Random(item.Id);
+                        decimal rating = Math.Round((decimal)(rng.NextDouble() * 1.0 + 4.0), 1);
                         int fs = (int)Math.Floor(rating);
                         bool hh = (rating - fs) >= 0.5m;
                         int es = 5 - fs - (hh ? 1 : 0);
 
                         <div class="pcard">
                             <div class="pcard-img-wrap">
-                                <img src="@(item.ImageUrl ?? "https://via.placeholder.com/300")" alt="@item.Name" class="pcard-img" loading="lazy" />
+                                <img src="@(item.ImageUrl ?? "https://via.placeholder.com/300")"
+                                     alt="@item.Name" class="pcard-img" loading="lazy" />
                                 <div class="pcard-overlay">
-                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="pcard-overlay-btn">
+                                    <a asp-controller="Product" asp-action="Detail"
+                                           asp-route-id="@item.Id" class="pcard-overlay-btn">
                                         <i class="bi bi-eye"></i> Xem chi tiết
                                     </a>
                                 </div>
@@ -790,7 +832,7 @@
                                 }
                                 else if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
                                 {
-                                    var pt = Math.Round((1 - item.DiscountPrice.Value / item.Price) * 100);
+                                    var pt = (int)Math.Round((1 - item.DiscountPrice.Value / item.Price) * 100);
                                     <span class="pcard-badge sale">-@pt%</span>
                                 }
                             </div>
@@ -815,7 +857,9 @@
                                 </div>
                                 <div class="pcard-footer">
                                     <div class="pcard-price-wrap">
-                                        <span class="pcard-price">@((item.DiscountPrice ?? item.Price).ToString("N0")) ₫</span>
+                                        <span class="pcard-price">
+                                            @((item.DiscountPrice ?? item.Price).ToString("N0")) ₫
+                                        </span>
                                         @if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
                                         {
                                             <span class="pcard-price-old">@item.Price.ToString("N0") ₫</span>
@@ -823,7 +867,8 @@
                                     </div>
                                     @if (item.Stock > 0)
                                     {
-                                        <form asp-controller="Product" asp-action="AddToCart" method="post" class="m-0 p-0">
+                                        <form asp-controller="Product" asp-action="AddToCart"
+                                              method="post" class="m-0 p-0">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="productId" value="@item.Id" />
                                             <button type="submit" class="btn-cart" title="Thêm vào giỏ">
@@ -833,7 +878,9 @@
                                     }
                                     else
                                     {
-                                        <button class="btn-cart" disabled title="Hết hàng"><i class="bi bi-cart-x"></i></button>
+                                        <button class="btn-cart" disabled title="Hết hàng">
+                                            <i class="bi bi-cart-x"></i>
+                                        </button>
                                     }
                                 </div>
                             </div>
@@ -841,22 +888,49 @@
                     }
                 </div>
 
+                <!-- Phân trang -->
                 @if (totalPages > 1)
                 {
                     <div class="pagination-wrap">
                         @if (currentPage > 1)
                         {
-                            <a asp-controller="Product" asp-action="Index" asp-route-page="@(currentPage - 1)" class="page-btn"><i class="bi bi-chevron-left"></i></a>
+                            <a asp-controller="Product" asp-action="Index"
+                               asp-route-page="@(currentPage - 1)"
+                               asp-route-category="@activeCategory"
+                               asp-route-search="@currentSearch"
+                               asp-route-priceRange="@currentPrice"
+                               asp-route-sortOrder="@currentSort"
+                               class="page-btn"><i class="bi bi-chevron-left"></i></a>
+                        }
+                        else
+                        {
+                            <span class="page-btn off"><i class="bi bi-chevron-left"></i></span>
                         }
 
                         @for (int n = Math.Max(1, currentPage - 2); n <= Math.Min(totalPages, currentPage + 2); n++)
                         {
-                            <a asp-controller="Product" asp-action="Index" asp-route-page="@n" class="page-btn @(n == currentPage ? "active" : "")">@n</a>
+                            <a asp-controller="Product" asp-action="Index"
+                               asp-route-page="@n"
+                               asp-route-category="@activeCategory"
+                               asp-route-search="@currentSearch"
+                               asp-route-priceRange="@currentPrice"
+                               asp-route-sortOrder="@currentSort"
+                               class="page-btn @(n == currentPage ? "active" : "")">@n</a>
                         }
 
                         @if (currentPage < totalPages)
                         {
-                            <a asp-controller="Product" asp-action="Index" asp-route-page="@(currentPage + 1)" class="page-btn"><i class="bi bi-chevron-right"></i></a>
+                            <a asp-controller="Product" asp-action="Index"
+                               asp-route-page="@(currentPage + 1)"
+                               asp-route-category="@activeCategory"
+                               asp-route-search="@currentSearch"
+                               asp-route-priceRange="@currentPrice"
+                               asp-route-sortOrder="@currentSort"
+                               class="page-btn"><i class="bi bi-chevron-right"></i></a>
+                        }
+                        else
+                        {
+                            <span class="page-btn off"><i class="bi bi-chevron-right"></i></span>
                         }
                     </div>
                 }
