@@ -193,9 +193,9 @@ namespace TechShop.Controllers
         public async Task<IActionResult> ConfirmPOS(int orderId)
         {
             var order = await _context.Orders.FindAsync(orderId);
-            if (order != null && order.OrderStatus == "Pending")
+            if (order != null && order.Status == "Pending")
             {
-                order.OrderStatus = "Processing"; // Hoặc "Paid" tùy bạn đặt tên
+                order.Status = "Processing"; // Hoặc "Paid" tùy bạn đặt tên
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Đã xác nhận thanh toán POS thành công!";
             }

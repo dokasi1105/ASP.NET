@@ -30,7 +30,7 @@
                     <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
                 </select>
                 <button type="submit" class="btn btn-primary">Cập nhật</button>
-                @if (Model.OrderStatus == "Pending")
+                @if (Model.Status == "Pending")
                 {
                     <form asp-controller="AdminOrder" asp-action="ConfirmPOS" method="post" class="d-inline">
                         <input type="hidden" name="orderId" value="@Model.Id" />
