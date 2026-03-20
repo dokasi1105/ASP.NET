@@ -58,7 +58,7 @@
                             <i class="bi bi-controller me-1"></i>Minigame
                         </a>
                     </li>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsInRole("Admin, Staff"))
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -80,17 +80,25 @@
                                         <i class="bi bi-receipt me-2"></i>Đơn hàng
                                     </a>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="AdminUser" asp-action="Index">
-                                        <i class="bi bi-people me-2"></i>Người dùng
+                                    <a class="dropdown-item" asp-controller="AdminService" asp-action="Index">
+                                        <i class="bi bi-tools me-2"></i>Phiếu dịch vụ
                                     </a>
                                 </li>
-                                <li>
-                                    <a class="dropdown-item" asp-controller="AdminRole" asp-action="Index">
-                                        <i class="bi bi-key me-2"></i>Phân quyền
-                                    </a>
-                                </li>
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="AdminUser" asp-action="Index">
+                                            <i class="bi bi-people me-2"></i>Người dùng
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="AdminRole" asp-action="Index">
+                                            <i class="bi bi-key me-2"></i>Phân quyền
+                                        </a>
+                                    </li>
+                                }
                             </ul>
                         </li>
                     }
