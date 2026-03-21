@@ -120,13 +120,16 @@
             }
             <hr>
             <div class="summary-row">
-                <span>Tạm tính</span><span>@total.ToString("N0") ₫</span>
+                <span>cartTotal</span><span>@total.ToString("N0") ₫</span>
             </div>
             <div class="summary-row">
-                <span>Vận chuyển</span><span class="text-success">Miễn phí</span>
+                <span>memberDiscount</span><span class="text-success">-0 ₫</span>
+            </div>
+            <div class="summary-row">
+                <span>shippingFee</span><span class="text-success">Miễn phí</span>
             </div>
             <div class="summary-total mt-3">
-                <span>Tổng cộng</span>
+                <span>finalTotal</span>
                 <span class="text-gradient">@total.ToString("N0") ₫</span>
             </div>
         </div>
