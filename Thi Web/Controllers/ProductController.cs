@@ -172,22 +172,31 @@ namespace TechShop.Controllers
 
         // ===== SO SÁNH =====
         [HttpPost]
-        public IActionResult AddToCompare(int productId)
+        public async Task<IActionResult> AddToCompare(int productId)
         {
+            var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId);
+            if (product == null) return Json(new { success = false, message = "Sản phẩm không tồn tại." });
+
             var compareListStr = HttpContext.Session.GetString("CompareList");
-            List<int> compareIds = string.IsNullOrEmpty(compareListStr)
+            var compareIds = string.IsNullOrEmpty(compareListStr)
                 ? new List<int>()
                 : JsonSerializer.Deserialize<List<int>>(compareListStr)!;
 
-            if (!compareIds.Contains(productId))
-            {
-                if (compareIds.Count >= 3)
-                    return Json(new { success = false, message = "Chỉ được so sánh tối đa 3 sản phẩm cùng lúc!" });
+            if (compareIds.Contains(productId))
+                return Json(new { success = true, count = compareIds.Count, message = "Sản phẩm đã nằm trong so sánh." });
 
-                compareIds.Add(productId);
-                HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
+            if (compareIds.Count >= 2)
+                return Json(new { success = false, message = "Chỉ được so sánh tối đa 2 sản phẩm." });
+
+            if (compareIds.Count == 1)
+            {
+                var first = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == compareIds[0]);
+                if (first != null && first.CategoryId != product.CategoryId)
+                    return Json(new { success = false, message = "Chỉ so sánh 2 sản phẩm cùng danh mục." });
             }
 
+            compareIds.Add(productId);
+            HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
             return Json(new { success = true, count = compareIds.Count, message = "Đã thêm vào danh sách so sánh." });
         }
 

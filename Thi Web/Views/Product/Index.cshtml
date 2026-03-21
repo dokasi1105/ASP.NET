@@ -814,6 +814,10 @@
                                     <span class="star-count">@rating.ToString("N1")</span>
                                 </div>
                                 <div class="pcard-footer">
+                                    <button type="button" class="btn-wish" data-id="@item.Id" title="Yêu thích">
+                                        <i class="bi bi-heart"></i>
+                                    </button>
+
                                     <div class="pcard-price-wrap">
                                         <span class="pcard-price">@((item.DiscountPrice ?? item.Price).ToString("N0")) ₫</span>
                                         @if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)

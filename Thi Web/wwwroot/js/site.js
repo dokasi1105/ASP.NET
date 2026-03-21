@@ -25,3 +25,14 @@
         }
     }
 })();
+
+$(document).on("click", ".btn-wish", function () {
+    const id = $(this).data("id");
+    $.post("/Product/ToggleWishlist", { productId: id })
+        .done(function (res) {
+            alert(res.message || "Đã cập nhật yêu thích");
+        })
+        .fail(function () {
+            window.location.href = "/Account/Login";
+        });
+});

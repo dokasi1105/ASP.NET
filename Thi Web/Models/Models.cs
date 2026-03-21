@@ -224,6 +224,7 @@ namespace TechShop.Models
         [Display(Name = "Ngày đặt")]
         public DateTime OrderDate { get; set; } = DateTime.Now;
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public bool LoyaltyPointsAwarded { get; set; } = false;
     }
 
     public class OrderDetail
