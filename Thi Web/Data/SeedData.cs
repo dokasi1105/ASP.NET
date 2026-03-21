@@ -12,7 +12,7 @@ namespace TechShop.Data
             var userManager = serviceProvider
                 .GetRequiredService<UserManager<ApplicationUser>>();
 
-            string[] roles = { "Admin", "Staff", "Customer" };
+            string[] roles = { "Admin", "Customer" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
