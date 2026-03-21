@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
 using TechShop.Models;
@@ -48,10 +50,45 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedAccount = false;
     options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
 });
+
+static bool IsAjaxRequest(HttpRequest request)
+{
+    // jQuery gửi X-Requested-With: XMLHttpRequest
+    if (request.Headers.TryGetValue("X-Requested-With", out var v) && v == "XMLHttpRequest")
+        return true;
+
+    // Hoặc client muốn JSON
+    var accept = request.Headers["Accept"].ToString();
+    return accept.Contains("application/json", StringComparison.OrdinalIgnoreCase);
+}
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = ctx =>
+        {
+            if (IsAjaxRequest(ctx.Request))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        },
+        OnRedirectToAccessDenied = ctx =>
+        {
+            if (IsAjaxRequest(ctx.Request))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddDistributedMemoryCache();
