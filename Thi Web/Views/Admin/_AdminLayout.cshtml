@@ -26,27 +26,40 @@
                 @if (User.IsInRole("Admin"))
                 {
                     <div class="nav-section-label">Sản phẩm</div>
-                    <a href="/Admin/AdminProduct/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminProduct") ? "active" : "")">
+                    <a href="/Admin/AdminProduct/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminProduct") ? "active" : "")">
                         <i class="bi bi-box"></i><span>Sản phẩm</span>
                     </a>
-                    <a href="/Admin/AdminCategory/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminCategory") ? "active" : "")">
+
+                    <a href="/Admin/AdminCategory/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminCategory") ? "active" : "")">
                         <i class="bi bi-tags"></i><span>Danh mục</span>
                     </a>
+
                     <div class="nav-section-label">Bán hàng</div>
-                    <a href="/Admin/AdminOrder/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminOrder") ? "active" : "")">
+                    <a href="/Admin/AdminOrder/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminOrder") ? "active" : "")">
                         <i class="bi bi-receipt"></i><span>Đơn hàng</span>
                     </a>
-                    <a asp-controller="AdminService" asp-action="Index" class="sidebar-link">
+
+                    <a href="/Admin/AdminService/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminService") ? "active" : "")">
                         <i class="bi bi-wrench-adjustable"></i><span>Phiếu dịch vụ</span>
                     </a>
+
                     <div class="nav-section-label">Hệ thống</div>
-                    <a href="https://dashboard.tawk.to/" target="_blank" rel="noopener" class="sidebar-link">
-                        <i class="bi bi-chat-dots"></i><span>Chat khách hàng (Tawk.to)</span>
+                    <a href="/Admin/AdminSupport/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminSupport") ? "active" : "")">
+                        <i class="bi bi-chat-dots"></i><span>Chat hỗ trợ</span>
                     </a>
-                    <a href="/Admin/AdminUser/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminUser") ? "active" : "")">
+
+                    <a href="/Admin/AdminUser/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminUser") ? "active" : "")">
                         <i class="bi bi-people"></i><span>Người dùng</span>
                     </a>
-                    <a href="/Admin/AdminRole/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminRole") ? "active" : "")">
+
+                    <a href="/Admin/AdminRole/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminRole") ? "active" : "")">
                         <i class="bi bi-shield-lock"></i><span>Phân quyền</span>
                     </a>
                 }

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -28,21 +30,37 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // Google & Facebook OAuth
-builder.Services.AddAuthentication()
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    })
-   .AddFacebook(options =>
-   {
-       options.AppId = builder.Configuration["Authentication:Facebook:AppId"]!;
-       options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"]!;
-       options.Fields.Add("name");
-       options.Fields.Add("email");
-       options.Scope.Clear(); // xóa scope mặc định
-       options.Scope.Add("public_profile"); // chỉ dùng public_profile
-   });
+builder.Services
+    .AddAuthentication()
+    .AddCookie();
+
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+if (!string.IsNullOrWhiteSpace(googleClientId) &&
+    !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddGoogle(options =>
+        {
+            options.ClientId = googleClientId;
+            options.ClientSecret = googleClientSecret;
+        });
+}
+
+var facebookAppId = builder.Configuration["Authentication:Facebook:AppId"];
+var facebookAppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+
+if (!string.IsNullOrWhiteSpace(facebookAppId) &&
+    !string.IsNullOrWhiteSpace(facebookAppSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddFacebook(options =>
+        {
+            options.AppId = facebookAppId;
+            options.AppSecret = facebookAppSecret;
+        });
+}
 
 // Xác minh 2 bước (2FA)
 builder.Services.Configure<IdentityOptions>(options =>

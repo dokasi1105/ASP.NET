@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using TechShop.Models;
+using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
+using TechShop.Models;
 
 namespace TechShop.Controllers
 {
@@ -381,6 +382,29 @@ namespace TechShop.Controllers
             if (role != null) await _roleManager.DeleteAsync(role);
             TempData["Success"] = "Đã xóa role.";
             return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = "Admin,Staff")]
+        public class AdminSupportController : Controller
+        {
+            public IActionResult Index()
+            {
+                ViewBag.TawkDirectChatUrl = "https://tawk.to/chat/69bac14ebb7f0b1c337b2b54/1jk0o67bd";
+                ViewBag.TawkDashboardUrl = "https://dashboard.tawk.to/";
+                return View("~/Views/Admin/Support/Index.cshtml");
+            }
+        }
+        public class AdminServiceController(ApplicationDbContext context)
+        {
+            _context = context;
+            public async Task<IActionResult> Index()
+            {
+                var items = await _context.ServiceBookings
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ToListAsync();
+
+                return View("~/Views/Admin/Service/Index.cshtml", items);
+            }
         }
 
     }
