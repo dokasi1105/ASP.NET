@@ -1,18 +1,40 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var path = Context.Request.Path.Value ?? string.Empty;
+
+    bool IsActive(params string[] prefixes)
+    {
+        foreach (var prefix in prefixes)
+        {
+            if (!string.IsNullOrWhiteSpace(prefix) &&
+                path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    var isAdmin = User.IsInRole("Admin");
+    var isStaff = User.IsInRole("Staff");
+    var displayName = User.Identity?.Name?.Split('@')[0] ?? "User";
+    var roleLabel = isAdmin ? "Admin" : isStaff ? "Staff" : "User";
+    var roleBadgeClass = isAdmin ? "bg-danger" : isStaff ? "bg-warning text-dark" : "bg-secondary";
+}
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — TechShop Admin</title>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
 <body class="admin-body">
     <div class="admin-layout">
-
         <!-- Sidebar -->
         <aside class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-brand">
@@ -24,36 +46,55 @@
             </div>
 
             <nav class="sidebar-nav">
-                <div class="nav-section-label">Sản phẩm</div>
+                @if (isAdmin || isStaff)
+                {
+                    <div class="nav-section-label">Sản phẩm</div>
 
-                <a asp-controller="AdminProduct" asp-action="Index"
-                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminProduct") ? "active" : "")">
-                    <i class="bi bi-box"></i><span>Sản phẩm</span>
-                </a>
+                    @if (isAdmin)
+                    {
+                        <a asp-controller="AdminProduct" asp-action="Index"
+                           class="sidebar-link @(IsActive("/AdminProduct", "/Admin/AdminProduct") ? "active" : "")">
+                            <i class="bi bi-box"></i><span>Sản phẩm</span>
+                        </a>
 
-                <a asp-controller="AdminCategory" asp-action="Index"
-                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminCategory") ? "active" : "")">
-                    <i class="bi bi-tags"></i><span>Danh mục</span>
-                </a>
+                        <a asp-controller="AdminCategory" asp-action="Index"
+                           class="sidebar-link @(IsActive("/AdminCategory", "/Admin/AdminCategory") ? "active" : "")">
+                            <i class="bi bi-tags"></i><span>Danh mục</span>
+                        </a>
+                    }
 
-                <div class="nav-section-label">Bán hàng</div>
+                    <div class="nav-section-label">Bán hàng</div>
 
-                <a asp-controller="AdminOrder" asp-action="Index"
-                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminOrder") ? "active" : "")">
-                    <i class="bi bi-receipt"></i><span>Đơn hàng</span>
-                </a>
+                    <a asp-controller="AdminOrder" asp-action="Index"
+                       class="sidebar-link @(IsActive("/AdminOrder", "/Admin/AdminOrder") ? "active" : "")">
+                        <i class="bi bi-receipt"></i><span>Đơn hàng</span>
+                    </a>
 
-                <div class="nav-section-label">Hệ thống</div>
+                    <a asp-controller="AdminService" asp-action="Index"
+                       class="sidebar-link @(IsActive("/AdminService", "/Admin/AdminService") ? "active" : "")">
+                        <i class="bi bi-wrench-adjustable"></i><span>Phiếu dịch vụ</span>
+                    </a>
 
-                <a asp-controller="AdminUser" asp-action="Index"
-                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminUser") ? "active" : "")">
-                    <i class="bi bi-people"></i><span>Người dùng</span>
-                </a>
+                    <div class="nav-section-label">Hệ thống</div>
 
-                <a asp-controller="AdminRole" asp-action="Index"
-                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminRole") ? "active" : "")">
-                    <i class="bi bi-shield-lock"></i><span>Phân quyền</span>
-                </a>
+                    <a asp-controller="AdminSupport" asp-action="Index"
+                       class="sidebar-link @(IsActive("/AdminSupport", "/Admin/AdminSupport") ? "active" : "")">
+                        <i class="bi bi-chat-dots"></i><span>Chat hỗ trợ</span>
+                    </a>
+
+                    @if (isAdmin)
+                    {
+                        <a asp-controller="AdminUser" asp-action="Index"
+                           class="sidebar-link @(IsActive("/AdminUser", "/Admin/AdminUser") ? "active" : "")">
+                            <i class="bi bi-people"></i><span>Người dùng</span>
+                        </a>
+
+                        <a asp-controller="AdminRole" asp-action="Index"
+                           class="sidebar-link @(IsActive("/AdminRole", "/Admin/AdminRole") ? "active" : "")">
+                            <i class="bi bi-shield-lock"></i><span>Phân quyền</span>
+                        </a>
+                    }
+                }
 
                 <div class="nav-section-label">Điều hướng</div>
 
@@ -73,14 +114,16 @@
         <!-- Main -->
         <div class="admin-main" id="adminMain">
             <header class="admin-topbar">
-                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <button class="sidebar-toggle" type="button" onclick="toggleSidebar()">
                     <i class="bi bi-list"></i>
                 </button>
+
                 <div class="topbar-title">@ViewData["Title"]</div>
+
                 <div class="topbar-user">
                     <i class="bi bi-person-circle me-2"></i>
-                    <span>@User.Identity!.Name?.Split('@')[0]</span>
-                    <span class="badge bg-danger ms-2">Admin</span>
+                    <span>@displayName</span>
+                    <span class="badge @roleBadgeClass ms-2">@roleLabel</span>
                 </div>
             </header>
 
@@ -92,6 +135,23 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (TempData["Warning"] != null)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show mb-3" role="alert">
+                        <i class="bi bi-exclamation-circle me-2"></i>@TempData["Warning"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
                 @RenderBody()
             </div>
         </div>
@@ -100,25 +160,42 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function toggleSidebar() {
-        var sidebar = document.getElementById('adminSidebar');
-        var main = document.getElementById('adminMain');
-        if (window.innerWidth <= 992) {
-        sidebar.classList.toggle('mobile-open');
-        } else {
-        sidebar.classList.toggle('collapsed');
-        main.style.marginLeft = sidebar.classList.contains('collapsed') ? '60px' : '240px';
-        }
+            const sidebar = document.getElementById('adminSidebar');
+            const main = document.getElementById('adminMain');
+
+            if (!sidebar || !main) return;
+
+            if (window.innerWidth <= 992) {
+                sidebar.classList.toggle('mobile-open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                main.style.marginLeft = sidebar.classList.contains('collapsed') ? '60px' : '240px';
+            }
         }
 
-        // Auto dismiss alerts
-        setTimeout(function () {
-        var alerts = document.querySelectorAll('.alert');
-        alerts.forEach(function (a) {
-        var bsAlert = bootstrap.Alert.getOrCreateInstance(a);
-        bsAlert.close();
+        window.addEventListener('resize', function () {
+            const sidebar = document.getElementById('adminSidebar');
+            const main = document.getElementById('adminMain');
+
+            if (!sidebar || !main) return;
+
+            if (window.innerWidth > 992) {
+                sidebar.classList.remove('mobile-open');
+                main.style.marginLeft = sidebar.classList.contains('collapsed') ? '60px' : '240px';
+            } else {
+                main.style.marginLeft = '';
+            }
         });
+
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (a) {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(a);
+                bsAlert.close();
+            });
         }, 4000);
     </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
