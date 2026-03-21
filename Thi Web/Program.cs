@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
 using TechShop.Models;
@@ -26,21 +30,37 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // Google & Facebook OAuth
-builder.Services.AddAuthentication()
-    .AddGoogle(options =>
-    {
-        options.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    })
-   .AddFacebook(options =>
-   {
-       options.AppId = builder.Configuration["Authentication:Facebook:AppId"]!;
-       options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"]!;
-       options.Fields.Add("name");
-       options.Fields.Add("email");
-       options.Scope.Clear(); // xóa scope mặc định
-       options.Scope.Add("public_profile"); // chỉ dùng public_profile
-   });
+builder.Services
+    .AddAuthentication()
+    .AddCookie();
+
+var googleClientId = builder.Configuration["Authentication:Google:ClientId"];
+var googleClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+if (!string.IsNullOrWhiteSpace(googleClientId) &&
+    !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddGoogle(options =>
+        {
+            options.ClientId = googleClientId;
+            options.ClientSecret = googleClientSecret;
+        });
+}
+
+var facebookAppId = builder.Configuration["Authentication:Facebook:AppId"];
+var facebookAppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+
+if (!string.IsNullOrWhiteSpace(facebookAppId) &&
+    !string.IsNullOrWhiteSpace(facebookAppSecret))
+{
+    builder.Services.AddAuthentication()
+        .AddFacebook(options =>
+        {
+            options.AppId = facebookAppId;
+            options.AppSecret = facebookAppSecret;
+        });
+}
 
 // Xác minh 2 bước (2FA)
 builder.Services.Configure<IdentityOptions>(options =>
@@ -48,10 +68,45 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedAccount = false;
     options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
 });
+
+static bool IsAjaxRequest(HttpRequest request)
+{
+    // jQuery gửi X-Requested-With: XMLHttpRequest
+    if (request.Headers.TryGetValue("X-Requested-With", out var v) && v == "XMLHttpRequest")
+        return true;
+
+    // Hoặc client muốn JSON
+    var accept = request.Headers["Accept"].ToString();
+    return accept.Contains("application/json", StringComparison.OrdinalIgnoreCase);
+}
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = ctx =>
+        {
+            if (IsAjaxRequest(ctx.Request))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        },
+        OnRedirectToAccessDenied = ctx =>
+        {
+            if (IsAjaxRequest(ctx.Request))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+            ctx.Response.Redirect(ctx.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddDistributedMemoryCache();

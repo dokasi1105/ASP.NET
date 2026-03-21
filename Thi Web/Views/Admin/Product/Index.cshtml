@@ -7,6 +7,25 @@
     <div><h4><i class="bi bi-box me-2"></i>Quản lý sản phẩm</h4><p class="text-muted mb-0">@Model.Count sản phẩm</p></div>
     <a asp-controller="AdminProduct" asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Thêm sản phẩm</a>
 </div>
+@{
+    var cats = ViewBag.Categories as List<TechShop.Models.Category>;
+    int? selected = ViewBag.SelectedCategory as int?;
+}
+
+<div class="mb-3 p-3 rounded" style="background:#0f172a;border:1px solid rgba(255,255,255,.07)">
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-action="Index" class="btn btn-sm @(selected == null ? "btn-primary" : "btn-outline-light")">
+            Tất cả
+        </a>
+        @foreach (var c in cats!)
+        {
+            <a asp-action="Index" asp-route-categoryId="@c.Id"
+               class="btn btn-sm @(selected==c.Id ? "btn-primary" : "btn-outline-light")">
+                @c.Name (@c.Products.Count)
+            </a>
+        }
+    </div>
+</div>
 
 <div class="admin-table-wrap">
     <table class="table admin-table">

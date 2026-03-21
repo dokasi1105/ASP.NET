@@ -1,152 +1,224 @@
 ﻿@model TechShop.Models.Order
 @{
     ViewData["Title"] = "Thanh toán";
-    var cart = ViewBag.Cart as List<TechShop.Models.CartItem>;
-    decimal total = ViewBag.Total;
+
+    var cart = ViewBag.Cart as List<TechShop.Models.CartItem> ?? new List<TechShop.Models.CartItem>();
+    decimal cartTotal = ViewBag.CartTotal ?? 0m;
+    decimal memberDiscount = ViewBag.MemberDiscount ?? 0m;
+    decimal shippingFee = ViewBag.ShippingFee ?? 0m;
+    decimal finalTotal = ViewBag.FinalTotal ?? 0m;
+    string membershipTier = ViewBag.MembershipTier ?? "Bronze";
+    int itemCount = cart.Sum(i => i.Quantity);
 }
 
 <div class="container py-5" style="margin-top:70px">
-    <h2 class="page-title mb-4"><i class="bi bi-credit-card me-2"></i>Thanh toán</h2>
+    <h2 class="page-title mb-4">
+        <i class="bi bi-credit-card me-2"></i>Thanh toán
+    </h2>
 
-    <div class="checkout-form-wrap p-4 rounded-3 shadow-sm" style="background-color: var(--bg-dark-surface); border: 1px solid var(--bg-dark-elevated);">
-        <h5 class="mb-4 text-white border-bottom border-secondary pb-3">
-            <i class="bi bi-truck text-cyan me-2"></i> Thông tin Vận chuyển
-        </h5>
+    <div class="row g-4">
+        <!-- FORM -->
+        <div class="col-lg-7">
+            <div class="checkout-form-wrap p-4 rounded-3 shadow-sm"
+                 style="background-color: var(--bg-dark-surface); border: 1px solid var(--bg-dark-elevated);">
+                <h5 class="mb-4 text-white border-bottom border-secondary pb-3">
+                    <i class="bi bi-truck text-cyan me-2"></i>Thông tin vận chuyển
+                </h5>
 
-        <form asp-action="Checkout" method="post">
-            @Html.AntiForgeryToken()
+                <form asp-action="Checkout" method="post">
+                    @@Html.AntiForgeryToken()
 
-            <div class="row g-4 mb-4">
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-                <div class="col-md-6">
-                    <label asp-for="FullName" class="form-label text-muted fw-bold">Họ và tên <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-muted border-secondary"><i class="bi bi-person"></i></span>
-                        <input asp-for="FullName" class="form-control bg-dark text-light border-secondary" placeholder="Nhập tên người nhận" />
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label text-muted fw-bold">
+                                Họ và tên <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-muted border-secondary">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input asp-for="FullName"
+                                       class="form-control bg-dark text-light border-secondary"
+                                       placeholder="Nhập tên người nhận" />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label text-muted fw-bold">
+                                Số điện thoại <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-muted border-secondary">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input asp-for="Phone"
+                                       type="tel"
+                                       class="form-control bg-dark text-light border-secondary"
+                                       placeholder="0901 234 567" />
+                            </div>
+                            <span asp-validation-for="Phone" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CustomerEmail" class="form-label text-muted fw-bold">
+                                Email nhận thông báo <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-muted border-secondary">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
+                                <input asp-for="CustomerEmail"
+                                       type="email"
+                                       class="form-control bg-dark text-light border-secondary"
+                                       placeholder="you@example.com" />
+                            </div>
+                            <span asp-validation-for="CustomerEmail" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Address" class="form-label text-muted fw-bold">
+                                Địa chỉ chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark text-muted border-secondary">
+                                    <i class="bi bi-geo-alt"></i>
+                                </span>
+                                <input asp-for="Address"
+                                       class="form-control bg-dark text-light border-secondary"
+                                       placeholder="Số nhà, Tên đường, Phường/Xã..." />
+                            </div>
+                            <span asp-validation-for="Address" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-7">
+                            <label asp-for="City" class="form-label text-muted fw-bold">
+                                Tỉnh / Thành phố <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="City"
+                                   class="form-control bg-dark text-light border-secondary"
+                                   placeholder="VD: TP. Hồ Chí Minh" />
+                            <span asp-validation-for="City" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label asp-for="PostalCode" class="form-label text-muted fw-bold">
+                                Mã bưu điện
+                            </label>
+                            <input asp-for="PostalCode"
+                                   class="form-control bg-dark text-light border-secondary"
+                                   placeholder="700000" />
+                            <span asp-validation-for="PostalCode" class="text-danger small mt-1"></span>
+                        </div>
                     </div>
-                    <span asp-validation-for="FullName" class="text-danger small mt-1"></span>
-                </div>
 
-                <div class="col-md-6">
-                    <label class="form-label text-muted fw-bold">Số điện thoại <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-muted border-secondary"><i class="bi bi-telephone"></i></span>
-                        <input name="Phone" type="tel" class="form-control bg-dark text-light border-secondary" placeholder="0901 234 567" required />
+                    <div class="payment-method-wrap mb-4 p-3 rounded"
+                         style="background-color: rgba(255,255,255,0.03);">
+                        <h6 class="text-white mb-3">Phương thức thanh toán</h6>
+
+                        <div class="d-flex gap-3 align-items-center flex-wrap">
+                            <label class="pay-option active">
+                                <input type="radio" name="payment" value="cod" id="payCOD" checked />
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Thanh toán khi nhận hàng (COD)</span>
+                            </label>
+
+                            <label class="pay-option">
+                                <input type="radio" name="payment" value="bank" id="payBank" />
+                                <i class="bi bi-bank"></i>
+                                <span>Chuyển khoản ngân hàng</span>
+                            </label>
+                        </div>
+
+                        <div id="qr-code-section" class="text-center mt-3 mb-2" style="display:none;">
+                            <h6 class="text-warning mb-2">Quét mã QR để thanh toán</h6>
+                            <img id="qr-image"
+                                 src="https://api.vietqr.io/image/970436-0123456789-dAbCdEf.jpg?accountName=TECHSHOP"
+                                 alt="Mã QR"
+                                 style="width:250px; border-radius:10px;" />
+                            <p id="qr-instruction" class="mt-2 text-muted small">
+                                Vui lòng ghi nội dung CK: "Thanh toan don hang {SĐT của bạn}"
+                            </p>
+                            <div class="small text-muted">
+                                Nếu bạn đã chuyển khoản, vui lòng chờ xác nhận từ hệ thống hoặc liên hệ CSKH.
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <!-- --- Thêm Email --- -->
-                <div class="col-md-6">
-                    <label class="form-label text-muted fw-bold">Email nhận thông báo <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-muted border-secondary"><i class="bi bi-envelope"></i></span>
-                        <!-- Order model có property CustomerEmail dùng asp-for -->
-                        <input type="email" name="CustomerEmail" class="form-control bg-dark text-light border-secondary" placeholder="you@example.com" required />
+
+                    <button type="submit"
+                            class="btn btn-primary btn-lg w-100 fw-bold shadow"
+                            style="background-color: var(--brand-coral); border-color: var(--brand-coral); letter-spacing: 0.5px;">
+                        <i class="bi bi-bag-check-fill me-2"></i>
+                        XÁC NHẬN ĐẶT HÀNG - @@finalTotal.ToString("N0") ₫
+                    </button>
+
+                    <div class="trust-signals-container d-flex flex-column align-items-center mt-4 pt-3 border-top border-secondary">
+                        <div class="payment-icons d-flex gap-3 mb-3 text-muted opacity-75">
+                            <i class="bi bi-credit-card-2-front-fill fs-3" title="Visa / Mastercard"></i>
+                            <i class="bi bi-paypal fs-3" title="PayPal Checkout"></i>
+                            <i class="bi bi-shield-lock-fill fs-3 text-success" title="256-bit SSL Secure Encryption"></i>
+                        </div>
+                        <div class="brand-commitments text-muted small text-center d-flex flex-wrap justify-content-center gap-3">
+                            <span><i class="bi bi-arrow-repeat text-cyan me-1"></i>Đổi trả miễn phí 30 ngày</span>
+                            <span><i class="bi bi-award-fill text-gold me-1"></i>Cam kết 100% chính hãng</span>
+                            <span><i class="bi bi-headset text-coral me-1"></i>Hỗ trợ kỹ thuật 24/7</span>
+                        </div>
                     </div>
-                </div>
+                </form>
+            </div>
+        </div>
 
-                <div class="col-12">
-                    <label asp-for="Address" class="form-label text-muted fw-bold">Địa chỉ chi tiết <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-dark text-muted border-secondary"><i class="bi bi-geo-alt"></i></span>
-                        <input asp-for="Address" class="form-control bg-dark text-light border-secondary" placeholder="Số nhà, Tên đường, Phường/Xã..." />
+        <!-- SUMMARY -->
+        <div class="col-lg-5">
+            <div class="order-summary">
+                <h5 class="mb-4">Đơn hàng của bạn (@@itemCount sản phẩm)</h5>
+
+                @foreach (var item in cart)
+                {
+                    <div class="checkout-item">
+                        <img src="@@(item.ImageUrl ?? "https://via.placeholder.com/60")" alt="@@item.ProductName" />
+                        <div class="checkout-item-info">
+                            <p>@@item.ProductName</p>
+                            <small>x@item.Quantity</small>
+                        </div>
+                        <span>@@item.Subtotal.ToString("N0") ₫</span>
                     </div>
-                    <span asp-validation-for="Address" class="text-danger small mt-1"></span>
+                }
+
+                <hr />
+
+                <div class="summary-row">
+                    <span>Tạm tính</span>
+                    <span>@cartTotal.ToString("N0") ₫</span>
                 </div>
 
-                <div class="col-md-7">
-                    <label asp-for="City" class="form-label text-muted fw-bold">Tỉnh / Thành phố <span class="text-danger">*</span></label>
-                    <input asp-for="City" class="form-control bg-dark text-light border-secondary" placeholder="VD: TP. Hồ Chí Minh" />
-                    <span asp-validation-for="City" class="text-danger small mt-1"></span>
+                <div class="summary-row">
+                    <span>Giảm giá thẻ (@@membershipTier)</span>
+                    <span class="text-success">-@@memberDiscount.ToString("N0") ₫</span>
                 </div>
 
-                <div class="col-md-5">
-                    <label asp-for="PostalCode" class="form-label text-muted fw-bold">Mã bưu điện</label>
-                    <input asp-for="PostalCode" class="form-control bg-dark text-light border-secondary" placeholder="700000" />
-                    <span asp-validation-for="PostalCode" class="text-danger small mt-1"></span>
-                </div>
-            </div>
-
-            <!-- --- Phương thức thanh toán --- -->
-            <div class="payment-method-wrap mb-4 p-3 rounded" style="background-color: rgba(255,255,255,0.03);">
-                <h6 class="text-white mb-3">Phương thức thanh toán</h6>
-
-                <div class="d-flex gap-3 align-items-center flex-wrap">
-                    <label class="pay-option active">
-                        <input type="radio" name="payment" value="cod" id="payCOD" checked />
-                        <i class="bi bi-cash-coin"></i>
-                        <span>Thanh toán khi nhận hàng (COD)</span>
-                    </label>
-
-                    <label class="pay-option">
-                        <input type="radio" name="payment" value="bank" id="payBank" />
-                        <i class="bi bi-bank"></i>
-                        <span>Chuyển khoản ngân hàng</span>
-                    </label>
+                <div class="summary-row">
+                    <span>Vận chuyển</span>
+                    <span>@@(shippingFee == 0 ? "Miễn phí" : shippingFee.ToString("N0") + " ₫")</span>
                 </div>
 
-                <!-- QR (ẩn mặc định) -->
-                <div id="qr-code-section" class="text-center mt-3 mb-2" style="display: none;">
-                    <h6 class="text-warning mb-2">Quét mã QR để thanh toán</h6>
-                    <img id="qr-image" src="https://api.vietqr.io/image/970436-0123456789-dAbCdEf.jpg?accountName=TECHSHOP" alt="Mã QR" style="width: 250px; border-radius:10px;" />
-                    <p id="qr-instruction" class="mt-2 text-muted small">Vui lòng ghi nội dung CK: "Thanh toan don hang {SĐT của bạn}"</p>
-                    <div class="small text-muted">Nếu bạn đã chuyển khoản, vui lòng chờ xác nhận từ hệ thống hoặc liên hệ CSKH.</div>
+                <div class="summary-total mt-3">
+                    <span>Tổng cộng</span>
+                    <span class="text-gradient">@@finalTotal.ToString("N0") ₫</span>
                 </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow" style="background-color: var(--brand-coral); border-color: var(--brand-coral); letter-spacing: 0.5px;">
-                <i class="bi bi-bag-check-fill me-2"></i> XÁC NHẬN ĐẶT HÀNG - @ViewBag.Total.ToString("N0") ₫
-            </button>
-            <div class="trust-signals-container d-flex flex-column align-items-center mt-4 pt-3 border-top border-secondary">
-                <div class="payment-icons d-flex gap-3 mb-3 text-muted opacity-75">
-                    <i class="bi bi-credit-card-2-front-fill fs-3" title="Visa / Mastercard"></i>
-                    <i class="bi bi-paypal fs-3" title="PayPal Checkout"></i>
-                    <i class="bi bi-shield-lock-fill fs-3 text-success" title="256-bit SSL Secure Encryption"></i>
-                </div>
-
-                <div class="brand-commitments text-muted small text-center d-flex flex-wrap justify-content-center gap-3">
-                    <span><i class="bi bi-arrow-repeat text-cyan me-1"></i> Đổi trả miễn phí 30 ngày</span>
-                    <span><i class="bi bi-award-fill text-gold me-1"></i> Cam kết 100% Chính hãng</span>
-                    <span><i class="bi bi-headset text-coral me-1"></i> Hỗ trợ kỹ thuật 24/7</span>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <div class="col-lg-5">
-        <div class="order-summary">
-            <h5 class="mb-4">Đơn hàng của bạn (@cart?.Sum(i => i.Quantity) sản phẩm)</h5>
-            @foreach (var item in cart!)
-            {
-                <div class="checkout-item">
-                    <img src="@(item.ImageUrl ?? "https://via.placeholder.com/60")" alt="@item.ProductName" />
-                    <div class="checkout-item-info">
-                        <p>@item.ProductName</p>
-                        <small>x@item.Quantity</small>
-                    </div>
-                    <span>@item.Subtotal.ToString("N0") ₫</span>
-                </div>
-            }
-            <hr>
-            <div class="summary-row">
-                <span>Tạm tính</span><span>@total.ToString("N0") ₫</span>
-            </div>
-            <div class="summary-row">
-                <span>Vận chuyển</span><span class="text-success">Miễn phí</span>
-            </div>
-            <div class="summary-total mt-3">
-                <span>Tổng cộng</span>
-                <span class="text-gradient">@total.ToString("N0") ₫</span>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
-        // xử lý thay đổi chọn phương thức và active class
         function refreshPayOptions() {
             document.querySelectorAll('.pay-option input').forEach(input => {
-                // ensure visual active class
                 input.addEventListener('change', function () {
                     document.querySelectorAll('.pay-option').forEach(l => l.classList.remove('active'));
                     var parent = this.closest('.pay-option');
@@ -156,7 +228,6 @@
             });
         }
 
-        // show/hide QR
         function toggleQR() {
             var isBank = document.getElementById('payBank') && document.getElementById('payBank').checked;
             var qrSection = document.getElementById('qr-code-section');
@@ -164,9 +235,9 @@
 
             qrSection.style.display = isBank ? 'block' : 'none';
 
-            // cập nhật nội dung bằng số điện thoại
             var phoneInput = document.querySelector('input[name="Phone"]');
             var instruction = document.getElementById('qr-instruction');
+
             if (instruction) {
                 var phone = phoneInput ? phoneInput.value.trim() : '';
                 if (phone) {
@@ -177,10 +248,8 @@
             }
         }
 
-        // Khởi tạo khi load
         document.addEventListener('DOMContentLoaded', function () {
             refreshPayOptions();
-            // gọi 1 lần để set trạng thái ban đầu
             toggleQR();
 
             var phoneInput = document.querySelector('input[name="Phone"]');

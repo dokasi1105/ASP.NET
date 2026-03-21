@@ -1,4 +1,10 @@
-﻿using TechShop.Services;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TechShop.Data;
+using TechShop.Models;
+using TechShop.Services;
 
 namespace TechShop.Controllers
 {
@@ -9,22 +15,82 @@ namespace TechShop.Controllers
         private readonly ICartService _cartService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailService _emailService;
+        private readonly ILogger<OrderController> _logger;
 
-        public OrderController(ApplicationDbContext context, ICartService cartService, UserManager<ApplicationUser> userManager, IEmailService emailService)
+        public OrderController(
+            ApplicationDbContext context,
+            ICartService cartService,
+            UserManager<ApplicationUser> userManager,
+            IEmailService emailService,
+            ILogger<OrderController> logger)
         {
             _context = context;
             _cartService = cartService;
             _userManager = userManager;
             _emailService = emailService;
+            _logger = logger;
+        }
+
+        private decimal GetMembershipDiscountRate(string tier)
+        {
+            return tier switch
+            {
+                "Silver" => 0.03m,
+                "Gold" => 0.05m,
+                "Diamond" => 0.08m,
+                _ => 0m
+            };
+        }
+
+        private decimal CalculateShippingFee(int totalItems, decimal cartTotal, string tier)
+        {
+            // Rule của bạn: giảm ship nếu mua nhiều / giá trị cao,
+            // miễn ship cho thẻ cao nhất (mình hiểu là Diamond).
+            if (tier == "Diamond") return 0;
+
+            decimal shipping = 35000;
+
+            if (totalItems >= 3 || cartTotal >= 5_000_000m)
+                shipping = 15000;
+
+            return shipping;
+        }
+
+        private void SetCheckoutViewBags(List<CartItem> cart, ApplicationUser user)
+        {
+            decimal cartTotal = _cartService.GetTotal(HttpContext.Session);
+            int totalItems = cart.Sum(x => x.Quantity);
+
+            decimal rate = GetMembershipDiscountRate(user.MembershipTier);
+            decimal memberDiscount = Math.Round(cartTotal * rate, 0);
+
+            decimal shippingFee = CalculateShippingFee(totalItems, cartTotal, user.MembershipTier);
+            decimal finalTotal = cartTotal - memberDiscount + shippingFee;
+
+            ViewBag.Cart = cart;
+            ViewBag.CartTotal = cartTotal;
+            ViewBag.MemberDiscount = memberDiscount;
+            ViewBag.ShippingFee = shippingFee;
+            ViewBag.FinalTotal = finalTotal;
+
+            // Nếu bạn vẫn dùng ViewBag.Total ở view cũ:
+            ViewBag.Total = finalTotal;
+
+            ViewBag.ItemCount = totalItems;
+            ViewBag.MembershipTier = user.MembershipTier;
+            ViewBag.DiscountRate = rate; // nếu muốn show % giảm
         }
 
         [HttpGet]
-        public IActionResult Checkout()
+        public async Task<IActionResult> Checkout()
         {
             var cart = _cartService.GetCart(HttpContext.Session);
             if (!cart.Any()) return RedirectToAction("Index", "Cart");
-            ViewBag.Cart = cart;
-            ViewBag.Total = _cartService.GetTotal(HttpContext.Session);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            SetCheckoutViewBags(cart, user);
             return View(new Order());
         }
 
@@ -35,36 +101,29 @@ namespace TechShop.Controllers
             var cart = _cartService.GetCart(HttpContext.Session);
             if (!cart.Any()) return RedirectToAction("Index", "Cart");
 
+            // Bỏ validate các navigation/property do EF/Identity:
             ModelState.Remove("User");
             ModelState.Remove("UserId");
             ModelState.Remove("OrderDetails");
 
-            if (!ModelState.IsValid)
-            {
-                ViewBag.Cart = cart;
-                ViewBag.Total = _cartService.GetTotal(HttpContext.Session);
-                return View(model);
-            }
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
 
-            // TÍNH PHÍ VẬN CHUYỂN
-            decimal shippingFee = 35000; // Phí ship mặc định
-            int totalItems = cart.Sum(c => c.Quantity);
+            // Nếu invalid thì bạn set ViewBag ngay TẠI ĐÂY (đây chính là “POST invalid model state”)
+            if (!ModelState.IsValid)
+            {
+                SetCheckoutViewBags(cart, user);
+                return View(model);
+            }
+
+            // Tính lại totals để tránh user sửa HTML
             decimal cartTotal = _cartService.GetTotal(HttpContext.Session);
+            int totalItems = cart.Sum(x => x.Quantity);
 
-            // Giảm phí ship nếu mua nhiều hoặc đơn giá cao
-            if (totalItems >= 3 || cartTotal > 5000000)
-            {
-                shippingFee = 15000;
-            }
-
-            // Miễn phí vận chuyển cho khách VIP
-            if (user.MembershipTier == "Gold" || user.MembershipTier == "Diamond")
-            {
-                shippingFee = 0;
-            }
+            decimal rate = GetMembershipDiscountRate(user.MembershipTier);
+            decimal memberDiscount = Math.Round(cartTotal * rate, 0);
+            decimal shippingFee = CalculateShippingFee(totalItems, cartTotal, user.MembershipTier);
+            decimal finalTotal = cartTotal - memberDiscount + shippingFee;
 
             var order = new Order
             {
@@ -73,7 +132,12 @@ namespace TechShop.Controllers
                 Address = model.Address,
                 City = model.City,
                 PostalCode = model.PostalCode,
-                TotalAmount = cartTotal + shippingFee, // Đã cộng phí ship
+
+                // nếu bạn đã thêm Phone/CustomerEmail vào Order model:
+                Phone = model.Phone,
+                CustomerEmail = model.CustomerEmail,
+
+                TotalAmount = finalTotal,
                 Status = "Pending",
                 OrderDate = DateTime.Now,
                 OrderDetails = cart.Select(c => new OrderDetail
@@ -87,26 +151,30 @@ namespace TechShop.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // TÍCH ĐIỂM VÀ NÂNG HẠNG THẺ CHO NGƯỜI DÙNG
-            int earnedPoints = (int)(order.TotalAmount / 100000);
-            user.LoyaltyPoints += earnedPoints;
+            // Query lại order kèm Product để email có tên sản phẩm
+            var orderForEmail = await _context.Orders
+                .Include(o => o.OrderDetails).ThenInclude(od => od.Product)
+                .FirstAsync(o => o.Id == order.Id);
 
-            if (user.LoyaltyPoints >= 5000)
-                user.MembershipTier = "Diamond";
-            else if (user.LoyaltyPoints >= 2000)
-                user.MembershipTier = "Gold";
-            else if (user.LoyaltyPoints >= 500)
-                user.MembershipTier = "Silver";
-            else
-                user.MembershipTier = "Bronze";
-
-            await _userManager.UpdateAsync(user);
-
-            // HÀM GỬI EMAIL 
-            if (!string.IsNullOrEmpty(user.Email))
+            // Gửi email (có log lỗi)
+            if (!string.IsNullOrWhiteSpace(order.CustomerEmail))
             {
-                _ = _emailService.SendOrderConfirmationAsync(user.Email, user.UserName ?? "Khách hàng", order);
+                try
+                {
+                    await _emailService.SendOrderConfirmationAsync(
+                        order.CustomerEmail,
+                        user.FullName ?? user.UserName ?? "Khách hàng",
+                        orderForEmail);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Send order email failed. OrderId={OrderId}, To={Email}, UserId={UserId}",
+                        order.Id, order.CustomerEmail, user.Id);
+                    // Không throw để không chặn checkout
+                }
             }
+
             _cartService.ClearCart(HttpContext.Session);
             return RedirectToAction(nameof(Completed), new { id = order.Id });
         }
@@ -116,6 +184,7 @@ namespace TechShop.Controllers
             var order = await _context.Orders
                 .Include(o => o.OrderDetails).ThenInclude(od => od.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
+
             if (order == null) return NotFound();
             return View(order);
         }
@@ -124,10 +193,12 @@ namespace TechShop.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
+
             var orders = await _context.Orders
                 .Where(o => o.UserId == user.Id)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
+
             return View(orders);
         }
     }

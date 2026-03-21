@@ -6,12 +6,19 @@
 }
 
 <div class="container py-5" style="margin-top:70px">
-    <h2 class="mb-4">So sánh sản phẩm <span class="text-muted">(@Model.Count/3)</span></h2>
+    <h2 class="mb-4">So sánh sản phẩm <span class="text-muted">(@Model.Count/2)</span></h2>
 
-    @if (!Model.Any())
+    @if (Model.Count < 2)
     {
-        <div class="alert alert-info">Bạn chưa chọn sản phẩm nào để so sánh.</div>
-        <a asp-action="Index" class="btn btn-primary">Tiếp tục mua sắm</a>
+        <div class="alert alert-warning">
+            Hãy chọn đủ <b>2 sản phẩm</b> cùng danh mục để so sánh.
+        </div>
+        @if (Model.Any())
+        {
+            <div class="alert alert-info">Bạn đã chọn: <b>@Model[0].Name</b>. Hãy chọn thêm 1 sản phẩm cùng danh mục.</div>
+        }
+        <a asp-controller="Product" asp-action="Index" class="btn btn-primary">Chọn sản phẩm để so sánh</a>
+        return;
     }
     else
     {

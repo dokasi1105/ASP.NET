@@ -6,7 +6,9 @@
     <title>@ViewData["Title"] — TechShop Admin</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 </head>
@@ -24,21 +26,40 @@
                 @if (User.IsInRole("Admin"))
                 {
                     <div class="nav-section-label">Sản phẩm</div>
-                    <a href="/Admin/AdminProduct/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminProduct") ? "active" : "")">
+                    <a href="/Admin/AdminProduct/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminProduct") ? "active" : "")">
                         <i class="bi bi-box"></i><span>Sản phẩm</span>
                     </a>
-                    <a href="/Admin/AdminCategory/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminCategory") ? "active" : "")">
+
+                    <a href="/Admin/AdminCategory/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminCategory") ? "active" : "")">
                         <i class="bi bi-tags"></i><span>Danh mục</span>
                     </a>
+
                     <div class="nav-section-label">Bán hàng</div>
-                    <a href="/Admin/AdminOrder/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminOrder") ? "active" : "")">
+                    <a href="/Admin/AdminOrder/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminOrder") ? "active" : "")">
                         <i class="bi bi-receipt"></i><span>Đơn hàng</span>
                     </a>
+
+                    <a href="/Admin/AdminService/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminService") ? "active" : "")">
+                        <i class="bi bi-wrench-adjustable"></i><span>Phiếu dịch vụ</span>
+                    </a>
+
                     <div class="nav-section-label">Hệ thống</div>
-                    <a href="/Admin/AdminUser/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminUser") ? "active" : "")">
+                    <a href="/Admin/AdminSupport/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminSupport") ? "active" : "")">
+                        <i class="bi bi-chat-dots"></i><span>Chat hỗ trợ</span>
+                    </a>
+
+                    <a href="/Admin/AdminUser/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminUser") ? "active" : "")">
                         <i class="bi bi-people"></i><span>Người dùng</span>
                     </a>
-                    <a href="/Admin/AdminRole/Index" class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminRole") ? "active" : "")">
+
+                    <a href="/Admin/AdminRole/Index"
+                       class="sidebar-link @(Context.Request.Path.StartsWithSegments("/Admin/AdminRole") ? "active" : "")">
                         <i class="bi bi-shield-lock"></i><span>Phân quyền</span>
                     </a>
                 }

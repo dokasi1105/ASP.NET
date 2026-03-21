@@ -7,13 +7,15 @@ namespace TechShop.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-
-        public ProfileController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        private readonly IWebHostEnvironment _env;
+        public ProfileController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IWebHostEnvironment env)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _env = env;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -23,7 +25,10 @@ namespace TechShop.Controllers
             {
                 FullName = user.FullName ?? "",
                 Email = user.Email ?? "",
-                PhoneNumber = user.PhoneNumber ?? ""
+                PhoneNumber = user.PhoneNumber ?? "",
+                AvatarUrl = user.AvatarUrl,
+                LoyaltyPoints = user.LoyaltyPoints,
+                MembershipTier = user.MembershipTier
             };
             return View(model);
         }
@@ -40,6 +45,51 @@ namespace TechShop.Controllers
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Account");
+            
+            if (model.AvatarFile != null && model.AvatarFile.Length > 0)
+            {
+                const long maxBytes = 2 * 1024 * 1024; // 2MB
+                if (model.AvatarFile.Length > maxBytes)
+                {
+                    TempData["Error"] = "Avatar quá lớn (tối đa 2MB).";
+                    return View(model);
+                }
+
+                var allowedExt = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var ext = Path.GetExtension(model.AvatarFile.FileName).ToLowerInvariant();
+                if (!allowedExt.Contains(ext))
+                {
+                    TempData["Error"] = "Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp";
+                    return View(model);
+                }
+
+                if (model.AvatarFile.ContentType == null || !model.AvatarFile.ContentType.StartsWith("image/"))
+                {
+                    TempData["Error"] = "File upload không phải hình ảnh.";
+                    return View(model);
+                }
+
+                var uploads = Path.Combine(_env.WebRootPath, "uploads", "avatars");
+                Directory.CreateDirectory(uploads);
+
+                var fileName = $"{user.Id}_{Guid.NewGuid():N}{ext}";
+                var filePath = Path.Combine(uploads, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.CreateNew))
+                {
+                    await model.AvatarFile.CopyToAsync(stream);
+                }
+
+                // (Tuỳ chọn) xóa avatar cũ nếu nằm trong /uploads/avatars/
+                if (!string.IsNullOrEmpty(user.AvatarUrl) && user.AvatarUrl.StartsWith("/uploads/avatars/"))
+                {
+                    var oldPath = Path.Combine(_env.WebRootPath, user.AvatarUrl.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
+
+                user.AvatarUrl = "/uploads/avatars/" + fileName;
+            }
 
             user.FullName = model.FullName;
             user.PhoneNumber = model.PhoneNumber;
@@ -92,6 +142,11 @@ namespace TechShop.Controllers
 
     public class ProfileViewModel
     {
+        public IFormFile? AvatarFile { get; set; }
+        public string? AvatarUrl { get; set; }
+        public int LoyaltyPoints { get; set; }
+        public string MembershipTier { get; set; } = "Bronze";
+
         [Required(ErrorMessage = "Họ tên là bắt buộc")]
         [Display(Name = "Họ và tên")]
         public string FullName { get; set; } = string.Empty;

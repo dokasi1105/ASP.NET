@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using TechShop.Models;
+using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
+using TechShop.Models;
 
 namespace TechShop.Controllers
 {
@@ -16,9 +17,20 @@ namespace TechShop.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         public AdminProductController(ApplicationDbContext context) => _context = context;
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? categoryId)
         {
-            var products = await _context.Products.Include(p => p.Category).ToListAsync();
+            var q = _context.Products.Include(p => p.Category).AsQueryable();
+            if (categoryId.HasValue)
+                q = q.Where(p => p.CategoryId == categoryId.Value);
+
+            var products = await q.ToListAsync();
+
+            ViewBag.Categories = await _context.Categories
+                .Include(c => c.Products)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
+            ViewBag.SelectedCategory = categoryId;
             return View("~/Views/Admin/Product/Index.cshtml", products);
         }
 
@@ -181,16 +193,66 @@ namespace TechShop.Controllers
             return View("~/Views/Admin/Order/Detail.cshtml", order);
         }
 
+        private int CalculateEarnedPoints(decimal totalAmount)
+        {
+            // ví dụ: 1 điểm / 100.000
+            return (int)Math.Floor(totalAmount / 100_000m);
+        }
+        private string GetTierByPoints(int points)
+        {
+            if (points >= 5000) return "Diamond";
+            if (points >= 2000) return "Gold";
+            if (points >= 500) return "Silver";
+            return "Bronze";
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {
-            Order? order = await _context.Orders.FindAsync(id);
-            if (order != null) { order.Status = status; await _context.SaveChangesAsync(); }
-            TempData["Success"] = "Cập nhật trạng thái thành công!";
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
+            if (order == null) return NotFound();
+            var oldStatus = order.Status;
+            order.Status = status;
+            if (order.User != null)
+            {
+                // Nếu chuyển sang Completed và chưa award -> cộng
+                if (status == "Completed" && !order.LoyaltyPointsAwarded)
+                {
+                    int earned = CalculateEarnedPoints(order.TotalAmount);
+                    int oldPoints = order.User.LoyaltyPoints;
+                    string oldTier = order.User.MembershipTier;
+                    order.User.LoyaltyPoints += earned;
+                    order.User.MembershipTier = GetTierByPoints(order.User.LoyaltyPoints);
+                    order.LoyaltyPointsAwarded = true;
+
+                    // TODO: nếu bạn đã thêm SendMembershipUpgradeEmailAsync
+                    // if (oldTier != order.User.MembershipTier && !string.IsNullOrEmpty(order.User.Email))
+                    //     await _emailService.SendMembershipUpgradeEmailAsync(...);
+
+                    TempData["Success"] = $"Đã cập nhật trạng thái + cộng {earned} điểm (từ {oldPoints} ➜ {order.User.LoyaltyPoints}).";
+                }
+                // Nếu chuyển sang Cancelled mà đã award -> trừ
+                if (status == "Cancelled" && order.LoyaltyPointsAwarded)
+                {
+                    int earned = CalculateEarnedPoints(order.TotalAmount);
+                    int oldPoints = order.User.LoyaltyPoints;
+
+                    order.User.LoyaltyPoints = Math.Max(0, order.User.LoyaltyPoints - earned);
+                    order.User.MembershipTier = GetTierByPoints(order.User.LoyaltyPoints);
+                    order.LoyaltyPointsAwarded = false;
+
+                    TempData["Success"] = $"Đã hủy đơn và trừ lại {earned} điểm (từ {oldPoints} ➜ {order.User.LoyaltyPoints}).";
+                }
+            }
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Detail), new { id });
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmPOS(int orderId)
         {
             var order = await _context.Orders.FindAsync(orderId);
@@ -321,6 +383,52 @@ namespace TechShop.Controllers
             TempData["Success"] = "Đã xóa role.";
             return RedirectToAction(nameof(Index));
         }
+        // ================================================================
+        // ADMIN SUPPORT CONTROLLER
+        // ================================================================
+        [Authorize(Roles = "Admin,Staff")]
+        public class AdminSupportController : Controller
+        {
+            public IActionResult Index()
+            {
+                ViewBag.TawkDirectChatUrl = "https://tawk.to/chat/69bac14ebb7f0b1c337b2b54/1jk0o67bd";
+                ViewBag.TawkDashboardUrl = "https://dashboard.tawk.to/";
+                return View("~/Views/Admin/Support/Index.cshtml");
+            }
+        }
 
+        //// ================================================================
+        //// ADMIN SERVICE CONTROLLER
+        //// ================================================================
+        //[Authorize(Roles = "Admin,Staff")]
+        //public class AdminServiceController : Controller
+        //{
+        //    private readonly ApplicationDbContext _context;
+        //    public AdminServiceController(ApplicationDbContext context)
+        //    {
+        //        _context = context;
+        //    }
+        //    public async Task<IActionResult> Index()
+        //    {
+        //        var items = await _context.ServiceTickets
+        //            .OrderByDescending(x => x.BookingDate)
+        //            .ToListAsync();
+        //        return View("~/Views/Admin/Service/Index.cshtml", items);
+        //    }
+        //    [HttpPost]
+        //    [ValidateAntiForgeryToken]
+        //    public async Task<IActionResult> UpdateStatus(int id, string status)
+        //    {
+        //        var ticket = await _context.ServiceTickets.FindAsync(id);
+        //        if (ticket == null) return NotFound();
+        //        if (!string.IsNullOrWhiteSpace(status))
+        //        {
+        //            ticket.Status = status;
+        //            await _context.SaveChangesAsync();
+        //            TempData["Success"] = $"Đã cập nhật phiếu dịch vụ #{ticket.Id} sang trạng thái {status}.";
+        //        }
+        //        return RedirectToAction(nameof(Index));
+        //    }
+        //}
     }
 }

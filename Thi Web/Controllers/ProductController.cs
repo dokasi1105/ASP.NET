@@ -172,22 +172,31 @@ namespace TechShop.Controllers
 
         // ===== SO SÁNH =====
         [HttpPost]
-        public IActionResult AddToCompare(int productId)
+        public async Task<IActionResult> AddToCompare(int productId)
         {
+            var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId);
+            if (product == null) return Json(new { success = false, message = "Sản phẩm không tồn tại." });
+
             var compareListStr = HttpContext.Session.GetString("CompareList");
-            List<int> compareIds = string.IsNullOrEmpty(compareListStr)
+            var compareIds = string.IsNullOrEmpty(compareListStr)
                 ? new List<int>()
                 : JsonSerializer.Deserialize<List<int>>(compareListStr)!;
 
-            if (!compareIds.Contains(productId))
-            {
-                if (compareIds.Count >= 3)
-                    return Json(new { success = false, message = "Chỉ được so sánh tối đa 3 sản phẩm cùng lúc!" });
+            if (compareIds.Contains(productId))
+                return Json(new { success = true, count = compareIds.Count, message = "Sản phẩm đã nằm trong so sánh." });
 
-                compareIds.Add(productId);
-                HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
+            if (compareIds.Count >= 2)
+                return Json(new { success = false, message = "Chỉ được so sánh tối đa 2 sản phẩm." });
+
+            if (compareIds.Count == 1)
+            {
+                var first = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == compareIds[0]);
+                if (first != null && first.CategoryId != product.CategoryId)
+                    return Json(new { success = false, message = "Chỉ so sánh 2 sản phẩm cùng danh mục." });
             }
 
+            compareIds.Add(productId);
+            HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
             return Json(new { success = true, count = compareIds.Count, message = "Đã thêm vào danh sách so sánh." });
         }
 
@@ -258,5 +267,32 @@ namespace TechShop.Controllers
 
             return View(wishlists);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> CompareQuick(int currentId, int otherId)
+        {
+            var current = await _context.Products
+                .Include(p => p.Specifications)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == currentId);
+            var other = await _context.Products
+                .Include(p => p.Specifications)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == otherId);
+            if (current == null || other == null)
+                return Content("<div class='alert alert-danger'>Không tìm thấy sản phẩm.</div>", "text/html");
+            if (current.CategoryId != other.CategoryId)
+                return Content("<div class='alert alert-warning'>Chỉ so sánh 2 sản phẩm cùng danh mục.</div>", "text/html");
+            var allSpecs = current.Specifications.Select(s => s.SpecName)
+                .Union(other.Specifications.Select(s => s.SpecName))
+                .Distinct()
+                .ToList();
+
+            ViewBag.AllSpecs = allSpecs;
+            ViewBag.Current = current;
+            ViewBag.Other = other;
+            return PartialView("_CompareQuick");
+        }
+
     }
 }

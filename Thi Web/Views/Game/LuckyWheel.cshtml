@@ -53,29 +53,28 @@
 
     /* Đặt chữ vào đúng 6 ô */
     .txt-1 {
-        transform: rotate(30deg);
+        transform: rotate(5deg);
     }
 
     .txt-2 {
-        transform: rotate(90deg);
+        transform: rotate(65deg);
     }
 
     .txt-3 {
-        transform: rotate(150deg);
-        color: #fff;
+        transform: rotate(125deg);
     }
 
     .txt-4 {
-        transform: rotate(210deg);
+        transform: rotate(185deg);
         color: #fff;
     }
 
     .txt-5 {
-        transform: rotate(270deg);
+        transform: rotate(245deg);
     }
 
     .txt-6 {
-        transform: rotate(330deg);
+        transform: rotate(305deg);
         color: #fff;
     }
 
@@ -139,48 +138,49 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script>
+        let currentRotation = 0;
+        let isSpinning = false;
 
-<script>
-    let currentRotation = 0;
-    let isSpinning = false;
+        function spinWheel() {
+            if (isSpinning) return;
 
-    function spinWheel() {
-        if (isSpinning) return;
+            $.ajax({
+                url: '/Game/SpinWheel',
+                type: 'POST',
+                success: function(res) {
+                    if (!res.success) {
+                        alert(res.message);
+                        return;
+                    }
+                    isSpinning = true;
+                    $('#spinBtn').prop('disabled', true);
+                    $('#currentPoints').text(res.remainingPoints);
+                    const segmentAngle = 60;
+                    const extraSpins = 5 * 360;
+                    const targetAngle = extraSpins + (360 - (res.segment * segmentAngle) - 30);
+                    currentRotation += targetAngle;
+                    const wheel = document.getElementById('wheel');
+                    wheel.style.transform = `rotate(${currentRotation}deg)`;
 
-        $.ajax({
-            url: '/Game/SpinWheel',
-            type: 'POST',
-            success: function(res) {
-                if (!res.success) {
-                    alert(res.message);
-                    return;
+                    setTimeout(() => {
+                        isSpinning = false;
+                        $('#spinBtn').prop('disabled', false);
+                        $('#prizeText').text(res.prize);
+                        var prizeModal = new bootstrap.Modal(document.getElementById('prizeModal'));
+                        prizeModal.show();
+                    }, 4000);
+                },
+                error: function(xhr) {
+                    if(xhr.status === 401 || xhr.status === 404) {
+                        alert("Vui lòng đăng nhập lại để chơi Game!");
+                        window.location.href = '/Account/Login';
+                    } else {
+                        alert("Lỗi kết nối máy chủ.");
+                    }
                 }
-                isSpinning = true;
-                $('#spinBtn').prop('disabled', true);
-                $('#currentPoints').text(res.remainingPoints);
-                const segmentAngle = 60;
-                const extraSpins = 5 * 360;
-                const targetAngle = extraSpins + (360 - (res.segment * segmentAngle) - 30);
-                currentRotation += targetAngle;
-                const wheel = document.getElementById('wheel');
-                wheel.style.transform = `rotate(${currentRotation}deg)`;
-
-                setTimeout(() => {
-                    isSpinning = false;
-                    $('#spinBtn').prop('disabled', false);
-                    $('#prizeText').text(res.prize);
-                    var prizeModal = new bootstrap.Modal(document.getElementById('prizeModal'));
-                    prizeModal.show();
-                }, 4000);
-            },
-            error: function(xhr) {
-                if(xhr.status === 401 || xhr.status === 404) {
-                    alert("Vui lòng đăng nhập lại để chơi Game!");
-                    window.location.href = '/Account/Login';
-                } else {
-                    alert("Lỗi kết nối máy chủ.");
-                }
-            }
-        });
-    }
-</script>
+            });
+        }
+    </script>
+}
