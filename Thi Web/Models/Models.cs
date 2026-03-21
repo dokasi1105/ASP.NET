@@ -202,6 +202,13 @@ namespace TechShop.Models
         [Display(Name = "Họ tên")]
         public string FullName { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+        public string Phone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email là bắt buộc")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        public string CustomerEmail { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Địa chỉ là bắt buộc")]
         [Display(Name = "Địa chỉ")]
         public string Address { get; set; } = string.Empty;

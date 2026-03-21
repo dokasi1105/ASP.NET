@@ -267,5 +267,32 @@ namespace TechShop.Controllers
 
             return View(wishlists);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> CompareQuick(int currentId, int otherId)
+        {
+            var current = await _context.Products
+                .Include(p => p.Specifications)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == currentId);
+            var other = await _context.Products
+                .Include(p => p.Specifications)
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == otherId);
+            if (current == null || other == null)
+                return Content("<div class='alert alert-danger'>Không tìm thấy sản phẩm.</div>", "text/html");
+            if (current.CategoryId != other.CategoryId)
+                return Content("<div class='alert alert-warning'>Chỉ so sánh 2 sản phẩm cùng danh mục.</div>", "text/html");
+            var allSpecs = current.Specifications.Select(s => s.SpecName)
+                .Union(other.Specifications.Select(s => s.SpecName))
+                .Distinct()
+                .ToList();
+
+            ViewBag.AllSpecs = allSpecs;
+            ViewBag.Current = current;
+            ViewBag.Other = other;
+            return PartialView("_CompareQuick");
+        }
+
     }
 }

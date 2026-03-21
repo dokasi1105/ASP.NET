@@ -40,13 +40,16 @@
     }
 })();
 
-$(document).on("click", ".btn-wish", function () {
+$(document).on("click", ".btn-wishlist", function () {
     const id = $(this).data("id");
     $.post("/Product/ToggleWishlist", { productId: id })
         .done(function (res) {
-            alert(res.message || "Đã cập nhật yêu thích");
+            // res là JSON khi đã login
+            alert(res.message || "Đã cập nhật.");
         })
-        .fail(function () {
-            window.location.href = "/Account/Login";
+        .fail(function (xhr) {
+            if (xhr.status === 401) {
+                window.location.href = "/Account/Login";
+            }
         });
 });

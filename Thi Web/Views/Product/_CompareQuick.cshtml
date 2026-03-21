@@ -1,0 +1,49 @@
+﻿@{
+    var current = ViewBag.Current as TechShop.Models.Product;
+    var other = ViewBag.Other as TechShop.Models.Product;
+    var allSpecs = ViewBag.AllSpecs as List<string>;
+}
+
+@if (current == null || other == null)
+{
+    <div class="alert alert-danger">Dữ liệu so sánh không hợp lệ.</div>
+}
+else
+{
+    <div class="row g-3">
+        <div class="col-md-6">
+            <h5 class="text-white">@current.Name</h5>
+            <div class="text-danger fw-bold">@current.Price.ToString("N0") ₫</div>
+        </div>
+        <div class="col-md-6">
+            <h5 class="text-white">@other.Name</h5>
+            <div class="text-danger fw-bold">@other.Price.ToString("N0") ₫</div>
+        </div>
+    </div>
+
+    <hr class="border-secondary" />
+
+    <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle">
+            <thead>
+                <tr>
+                    <th>Thông số</th>
+                    <th>@current.Name</th>
+                    <th>@other.Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var spec in allSpecs!)
+                {
+                    var v1 = current.Specifications.FirstOrDefault(s => s.SpecName == spec)?.SpecValue;
+                    var v2 = other.Specifications.FirstOrDefault(s => s.SpecName == spec)?.SpecValue;
+                    <tr>
+                        <td>@spec</td>
+                        <td>@(string.IsNullOrEmpty(v1) ? "-" : v1)</td>
+                        <td>@(string.IsNullOrEmpty(v2) ? "-" : v2)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using TechShop.Models;
 
 namespace TechShop.Controllers
 {
@@ -272,28 +273,27 @@ namespace TechShop.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            // Không nói email có tồn tại hay không:
+
+            // Không tiết lộ email có tồn tại hay không
             if (user == null)
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var resetLink = Url.Action(nameof(ResetPassword), "Account",
-                new { email = user.Email, token = token },
+
+            var link = Url.Action(nameof(ResetPassword), "Account",
+                new { email = user.Email, token },
                 protocol: Request.Scheme);
 
-            await _emailService.SendPasswordResetEmailAsync(user.Email!, resetLink!);
+            await _emailService.SendPasswordResetEmailAsync(user.Email!, link!);
             return RedirectToAction(nameof(ForgotPasswordConfirmation));
         }
-
         [HttpGet]
         public IActionResult ForgotPasswordConfirmation() => View();
-
         [HttpGet]
         public IActionResult ResetPassword(string email, string token)
         {
             return View(new ResetPasswordViewModel { Email = email, Token = token });
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
@@ -301,7 +301,8 @@ namespace TechShop.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            // Không tiết lộ thông tin:
+
+            // Không tiết lộ email
             if (user == null)
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
 
@@ -314,6 +315,5 @@ namespace TechShop.Controllers
         }
         [HttpGet]
         public IActionResult ResetPasswordConfirmation() => View();
-
     }
 }

@@ -37,7 +37,7 @@
                     <div class="input-group">
                         <span class="input-group-text bg-dark text-muted border-secondary"><i class="bi bi-envelope"></i></span>
                         <!-- Order model có property CustomerEmail dùng asp-for -->
-                        <input type="email" name="CustomerEmail" class="form-control bg-dark text-light border-secondary" placeholder="you@example.com" required />
+                        <input asp-for="CustomerEmail" type="email" class="form-control bg-dark text-light border-secondary" placeholder="you@example.com" />
                     </div>
                 </div>
                 <div class="col-12">
@@ -120,16 +120,16 @@
             }
             <hr>
             <div class="summary-row">
-                <span>cartTotal</span><span>@total.ToString("N0") ₫</span>
+                <span>ViewBag.Cart</span><span>@total.ToString("N0") ₫</span>
             </div>
             <div class="summary-row">
-                <span>memberDiscount</span><span class="text-success">-0 ₫</span>
+                <span>ViewBag.MemberDiscount</span><span class="text-success">-0 ₫</span>
             </div>
             <div class="summary-row">
-                <span>shippingFee</span><span class="text-success">Miễn phí</span>
+                <span>ViewBag.ShippingFee</span><span class="text-success">Miễn phí</span>
             </div>
             <div class="summary-total mt-3">
-                <span>finalTotal</span>
+                <span>ViewBag.FinalTotal</span>
                 <span class="text-gradient">@total.ToString("N0") ₫</span>
             </div>
         </div>
