@@ -168,8 +168,10 @@ a {
         width: 260px;
     }
 
-    .search-input::placeholder {
-        color: var(--text-muted);
+    .search-input::placeholder,
+    .form-control::placeholder,
+    .form-select::placeholder {
+        color: rgba(255,255,255,0.85);
     }
 
 .search-btn {
@@ -317,8 +319,10 @@ a {
         outline: none;
     }
 
-    .form-control::placeholder {
-        color: var(--text-muted);
+    .search-input::placeholder,
+    .form-control::placeholder,
+    .form-select::placeholder {
+        color: rgba(255,255,255,0.85);
     }
 
 .form-label {
