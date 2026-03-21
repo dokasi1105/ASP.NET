@@ -9,6 +9,8 @@ namespace TechShop.Services
     {
         Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order);
         Task SendWelcomeEmailAsync(string email, string fullName);
+        Task SendPasswordResetEmailAsync(string toEmail, string resetLink);
+        Task SendMembershipUpgradeEmailAsync(string toEmail, string fullName, string oldTier, string newTier, int currentPoints);
     }
 
     public class EmailService : IEmailService
@@ -133,5 +135,25 @@ namespace TechShop.Services
             catch (Exception ex) { Console.WriteLine($"Lỗi gửi Email: {ex.Message}"); }
             finally { await client.DisconnectAsync(true); }
         }
+        public async Task SendMembershipUpgradeEmailAsync(string toEmail, string fullName, string oldTier, string newTier, int currentPoints)
+        {
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(_config["SmtpSettings:SenderName"] ?? "TechShop", _config["SmtpSettings:SenderEmail"]));
+            message.To.Add(new MailboxAddress(fullName ?? "", toEmail));
+            message.Subject = "TechShop - Nâng cấp thẻ thành viên";
+
+            var builder = new BodyBuilder
+            {
+                HtmlBody =
+                    $@"<h3>Xin chào {System.Net.WebUtility.HtmlEncode(fullName)},</h3>
+               <p>Chúc mừng bạn đã được nâng cấp thẻ thành viên!</p>
+               <p><b>{oldTier}</b> ➜ <b>{newTier}</b></p>
+               <p>Điểm hiện tại: <b>{currentPoints}</b></p>
+               <p>Cảm ơn bạn đã mua sắm tại TechShop.</p>"
+            };
+            message.Body = builder.ToMessageBody();
+            await SendEmailAsync(message);
+        }
+
     }
 }
