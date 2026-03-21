@@ -26,6 +26,20 @@
     }
 })();
 
+// Global handler: nếu AJAX gặp 401 thì đưa về Login có returnUrl
+(function () {
+    if (window.jQuery) {
+        $(document).ajaxError(function (_event, jqxhr) {
+            if (jqxhr && jqxhr.status === 401) {
+                const returnUrl = encodeURIComponent(
+                    window.location.pathname + window.location.search + window.location.hash
+                );
+                window.location.href = `/Account/Login?returnUrl=${returnUrl}`;
+            }
+        });
+    }
+})();
+
 $(document).on("click", ".btn-wish", function () {
     const id = $(this).data("id");
     $.post("/Product/ToggleWishlist", { productId: id })

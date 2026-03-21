@@ -1,6 +1,7 @@
 ﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
+using System.Net;
 using TechShop.Models;
 
 namespace TechShop.Services
@@ -8,7 +9,7 @@ namespace TechShop.Services
     public interface IEmailService
     {
         Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order);
-        Task SendWelcomeEmailAsync(string email, string fullName);
+        Task SendWelcomeEmailAsync(string toEmail, string fullName);
         Task SendPasswordResetEmailAsync(string toEmail, string resetLink);
         Task SendMembershipUpgradeEmailAsync(string toEmail, string fullName, string oldTier, string newTier, int currentPoints);
     }
@@ -16,144 +17,167 @@ namespace TechShop.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _config;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration config)
+        public EmailService(IConfiguration config, ILogger<EmailService> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
-        public async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order)
+        private (string Server, int Port, string Username, string Password, string SenderEmail, string SenderName) GetSmtp()
         {
-            // Thiết lập nội dung Email dạng HTML
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("TechShop Store", _config["SmtpSettings:SenderEmail"]));
-            message.To.Add(new MailboxAddress(customerName, toEmail));
-            message.Subject = $"Xác nhận đơn hàng #{order.Id} từ TechShop";
+            string server = _config["SmtpSettings:Server"] ?? "";
+            string portStr = _config["SmtpSettings:Port"] ?? "587";
+            string username = _config["SmtpSettings:Username"] ?? "";
+            string password = _config["SmtpSettings:Password"] ?? "";
+            string senderEmail = _config["SmtpSettings:SenderEmail"] ?? "";
+            string senderName = _config["SmtpSettings:SenderName"] ?? "TechShop";
 
-            var builder = new BodyBuilder();
-            builder.HtmlBody = $@"
-                <div style='font-family: Arial, sans-serif; color: #333;'>
-                    <h2 style='color: #4f46e5;'>Cảm ơn bạn đã đặt hàng, {customerName}!</h2>
-                    <p>Đơn hàng <strong>#{order.Id}</strong> của bạn đã được ghi nhận vào hệ thống lúc {order.OrderDate.ToString("dd/MM/yyyy HH:mm")}.</p>
-                    <table border='1' cellpadding='10' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 600px;'>
-                        <tr style='background-color: #f1f5f9;'>
-                            <th>Sản phẩm</th>
-                            <th>Số lượng</th>
-                            <th>Thành tiền</th>
-                        </tr>";
+            if (!int.TryParse(portStr, out int port)) port = 587;
 
-            foreach (var detail in order.OrderDetails)
-            {
-                builder.HtmlBody += $@"
-                        <tr>
-                            <td>{detail.Product?.Name}</td>
-                            <td align='center'>{detail.Quantity}</td>
-                            <td align='right'>{detail.UnitPrice.ToString("N0")} ₫</td>
-                        </tr>";
-            }
+            return (server, port, username, password, senderEmail, senderName);
+        }
 
-            builder.HtmlBody += $@"
-                        <tr style='font-weight: bold;'>
-                            <td colspan='2' align='right'>Tổng thanh toán:</td>
-                            <td align='right' style='color: #dc3545;'>{order.TotalAmount.ToString("N0")} ₫</td>
-                        </tr>
-                    </table>
-                    <p>Chúng tôi sẽ liên hệ để giao hàng trong thời gian sớm nhất.</p>
-                </div>";
-
-            message.Body = builder.ToMessageBody();
-
-            // Kết nối SMTP và gửi
+        private async Task SendEmailAsync(MimeMessage message)
+        {
+            var smtp = GetSmtp();
             using var client = new SmtpClient();
+
             try
             {
-                // Sử dụng cấu hình từ appsettings.json
-                string server = _config["SmtpSettings:Server"];
-                int port = int.Parse(_config["SmtpSettings:Port"]);
-                string user = _config["SmtpSettings:Username"];
-                string pass = _config["SmtpSettings:Password"];
-
-                await client.ConnectAsync(server, port, SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(user, pass);
+                await client.ConnectAsync(smtp.Server, smtp.Port, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(smtp.Username, smtp.Password);
                 await client.SendAsync(message);
+
+                _logger.LogInformation("Email sent ok. To={To}, Subject={Subject}", message.To.ToString(), message.Subject);
             }
             catch (Exception ex)
             {
-                // Xử lý ghi log lỗi nếu không gửi được (bỏ qua nếu muốn app không sập)
-                Console.WriteLine($"Lỗi gửi Email: {ex.Message}");
+                _logger.LogError(ex, "Email send failed. To={To}, Subject={Subject}", message.To.ToString(), message.Subject);
+                throw; // để controller bắt và không làm “mất dấu lỗi”
             }
             finally
             {
                 await client.DisconnectAsync(true);
             }
         }
-        // Thêm vào IEmailService
-        public interface IEmailService
-        {
-            Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order);
-            Task SendWelcomeEmailAsync(string toEmail, string customerName);
-            Task SendPasswordResetEmailAsync(string toEmail, string resetLink);
-        }
 
-        // Thêm vào class EmailService
-        public async Task SendWelcomeEmailAsync(string toEmail, string customerName)
+        public async Task SendWelcomeEmailAsync(string toEmail, string fullName)
         {
+            var smtp = GetSmtp();
+            var safeName = WebUtility.HtmlEncode(fullName);
+
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("TechShop Store", _config["SmtpSettings:SenderEmail"]));
-            message.To.Add(new MailboxAddress(customerName, toEmail));
+            message.From.Add(new MailboxAddress(smtp.SenderName, smtp.SenderEmail));
+            message.To.Add(new MailboxAddress(fullName ?? "", toEmail));
             message.Subject = "Chào mừng bạn đến với TechShop!";
 
-            var builder = new BodyBuilder { HtmlBody = $"<h3>Xin chào {customerName},</h3><p>Cảm ơn bạn đã đăng ký tài khoản tại TechShop. Chúc bạn có trải nghiệm mua sắm tuyệt vời!</p>" };
-            message.Body = builder.ToMessageBody();
+            message.Body = new BodyBuilder
+            {
+                HtmlBody = $@"
+                    <div style='font-family:Arial,sans-serif; color:#111'>
+                        <h3>Xin chào {safeName},</h3>
+                        <p>Cảm ơn bạn đã đăng ký tài khoản tại TechShop. Chúc bạn mua sắm vui vẻ!</p>
+                    </div>"
+            }.ToMessageBody();
 
             await SendEmailAsync(message);
         }
 
         public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
         {
-            var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("TechShop Store", _config["SmtpSettings:SenderEmail"]));
-            message.To.Add(new MailboxAddress("", toEmail));
-            message.Subject = "Khôi phục mật khẩu TechShop";
+            var smtp = GetSmtp();
+            var safeLink = WebUtility.HtmlEncode(resetLink);
 
-            var builder = new BodyBuilder { HtmlBody = $"<h3>Yêu cầu đặt lại mật khẩu</h3><p>Vui lòng click vào link sau để đặt lại mật khẩu của bạn: <a href='{resetLink}'>Bấm vào đây</a></p><p>Link này sẽ hết hạn sau 15 phút. Nếu không phải bạn yêu cầu, hãy bỏ qua email này.</p>" };
-            message.Body = builder.ToMessageBody();
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(smtp.SenderName, smtp.SenderEmail));
+            message.To.Add(MailboxAddress.Parse(toEmail));
+            message.Subject = "TechShop - Khôi phục mật khẩu";
+
+            message.Body = new BodyBuilder
+            {
+                HtmlBody = $@"
+                    <div style='font-family:Arial,sans-serif; color:#111'>
+                        <h3>Yêu cầu đặt lại mật khẩu</h3>
+                        <p>Vui lòng bấm link sau để đặt lại mật khẩu:</p>
+                        <p><a href='{safeLink}'>Đặt lại mật khẩu</a></p>
+                        <p>Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>
+                    </div>"
+            }.ToMessageBody();
 
             await SendEmailAsync(message);
         }
 
-        // Hàm phụ trợ dùng chung để giảm code lặp lại
-        private async Task SendEmailAsync(MimeMessage message)
-        {
-            using var client = new SmtpClient();
-            try
-            {
-                await client.ConnectAsync(_config["SmtpSettings:Server"], int.Parse(_config["SmtpSettings:Port"]), SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync(_config["SmtpSettings:Username"], _config["SmtpSettings:Password"]);
-                await client.SendAsync(message);
-            }
-            catch (Exception ex) { Console.WriteLine($"Lỗi gửi Email: {ex.Message}"); }
-            finally { await client.DisconnectAsync(true); }
-        }
         public async Task SendMembershipUpgradeEmailAsync(string toEmail, string fullName, string oldTier, string newTier, int currentPoints)
         {
+            var smtp = GetSmtp();
+            var safeName = WebUtility.HtmlEncode(fullName);
+            var safeOld = WebUtility.HtmlEncode(oldTier);
+            var safeNew = WebUtility.HtmlEncode(newTier);
+
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress(_config["SmtpSettings:SenderName"] ?? "TechShop", _config["SmtpSettings:SenderEmail"]));
+            message.From.Add(new MailboxAddress(smtp.SenderName, smtp.SenderEmail));
             message.To.Add(new MailboxAddress(fullName ?? "", toEmail));
             message.Subject = "TechShop - Nâng cấp thẻ thành viên";
 
-            var builder = new BodyBuilder
+            message.Body = new BodyBuilder
             {
-                HtmlBody =
-                    $@"<h3>Xin chào {System.Net.WebUtility.HtmlEncode(fullName)},</h3>
-               <p>Chúc mừng bạn đã được nâng cấp thẻ thành viên!</p>
-               <p><b>{oldTier}</b> ➜ <b>{newTier}</b></p>
-               <p>Điểm hiện tại: <b>{currentPoints}</b></p>
-               <p>Cảm ơn bạn đã mua sắm tại TechShop.</p>"
-            };
-            message.Body = builder.ToMessageBody();
+                HtmlBody = $@"
+                    <div style='font-family:Arial,sans-serif; color:#111'>
+                        <h3>Xin chào {safeName},</h3>
+                        <p>Chúc mừng bạn đã được nâng cấp thẻ thành viên!</p>
+                        <p><b>{safeOld}</b> ➜ <b>{safeNew}</b></p>
+                        <p>Điểm hiện tại: <b>{currentPoints}</b></p>
+                    </div>"
+            }.ToMessageBody();
+
             await SendEmailAsync(message);
         }
 
+        public async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order)
+        {
+            var smtp = GetSmtp();
+            var safeName = WebUtility.HtmlEncode(customerName);
+
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(smtp.SenderName, smtp.SenderEmail));
+            message.To.Add(new MailboxAddress(customerName ?? "", toEmail));
+            message.Subject = $"Xác nhận đơn hàng #{order.Id} từ TechShop";
+
+            var html =
+                $@"<div style='font-family:Arial,sans-serif; color:#111'>
+                        <h2 style='color:#4f46e5;'>Cảm ơn bạn đã đặt hàng, {safeName}!</h2>
+                        <p>Đơn hàng <b>#{order.Id}</b> ghi nhận lúc {order.OrderDate:dd/MM/yyyy HH:mm}.</p>
+                        <table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse; width:100%; max-width:700px'>
+                            <tr style='background:#f1f5f9'>
+                                <th align='left'>Sản phẩm</th>
+                                <th align='center'>Số lượng</th>
+                                <th align='right'>Đơn giá</th>
+                            </tr>";
+
+            foreach (var d in order.OrderDetails)
+            {
+                var pname = WebUtility.HtmlEncode(d.Product?.Name ?? $"SP#{d.ProductId}");
+                html += $@"
+                    <tr>
+                        <td>{pname}</td>
+                        <td align='center'>{d.Quantity}</td>
+                        <td align='right'>{d.UnitPrice:N0} ₫</td>
+                    </tr>";
+            }
+
+            html += $@"
+                        <tr style='font-weight:bold'>
+                            <td colspan='2' align='right'>Tổng thanh toán:</td>
+                            <td align='right' style='color:#dc3545'>{order.TotalAmount:N0} ₫</td>
+                        </tr>
+                    </table>
+                    <p>TechShop sẽ liên hệ và giao hàng sớm nhất.</p>
+                </div>";
+
+            message.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
+            await SendEmailAsync(message);
+        }
     }
 }
