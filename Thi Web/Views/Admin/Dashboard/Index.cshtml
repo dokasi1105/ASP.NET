@@ -1,0 +1,86 @@
+﻿@model TechShop.ViewModels.Admin.AdminDashboardViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <h2 class="mb-4">Dashboard</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body">
+                    <div class="small">Tổng doanh thu</div>
+                    <div class="fs-3 fw-bold">@Model.TotalRevenue.ToString("N0") ₫</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-info text-white">
+                <div class="card-body">
+                    <div class="small">Tổng đơn hàng</div>
+                    <div class="fs-3 fw-bold">@Model.TotalOrders</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body">
+                    <div class="small">Tổng sản phẩm</div>
+                    <div class="fs-3 fw-bold">@Model.TotalProducts</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">Sản phẩm bán chạy nhất</h5>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Đã bán</th>
+                        <th>Doanh thu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in Model.TopProducts)
+                    {
+                        <tr>
+                            <td>@p.ProductName</td>
+                            <td>@p.SoldQuantity</td>
+                            <td>@p.Revenue.ToString("N0") ₫</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h5 class="mb-3">Tỷ lệ bán hàng</h5>
+            <canvas id="salesRatioChart" height="120"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesRatio.Select(x => x.ProductName)));
+        const data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SalesRatio.Select(x => x.SoldQuantity)));
+
+        new Chart(document.getElementById('salesRatioChart'), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data
+                }]
+            }
+        });
+    </script>
+}
