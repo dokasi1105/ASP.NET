@@ -292,4 +292,50 @@ namespace TechShop.Models
         [Compare("Password")]
         public string ConfirmPassword { get; set; } = string.Empty;
     }
+
+    //view model cho biến thể
+    public class ProductVariantGroup
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public List<ProductVariantOption> Options { get; set; } = new();
+    }
+    public class ProductVariantOption
+    {
+        public int Id { get; set; }
+        public int ProductVariantGroupId { get; set; }
+        public string Value { get; set; } = string.Empty; // Đen, 16GB, 1TB...
+        public ProductVariantGroup? ProductVariantGroup { get; set; }
+    }
+    public class ProductVariant
+    {
+        public int Id { get; set; }
+        public int ProductId { get; set; }
+        public string Sku { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public int Stock { get; set; }
+        public bool IsActive { get; set; } = true;
+        public Product? Product { get; set; }
+        public List<ProductVariantValue> Values { get; set; } = new();
+    }
+    public class ProductVariantValue
+    {
+        public int Id { get; set; }
+        public int ProductVariantId { get; set; }
+        public int ProductVariantOptionId { get; set; }
+        public ProductVariant? ProductVariant { get; set; }
+        public ProductVariantOption? ProductVariantOption { get; set; }
+    }
+    //Quản lý mã giảm giá
+    public class Coupon
+    {
+        public int Id { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public int DiscountPercent { get; set; }
+        public decimal? MaxDiscountAmount { get; set; }
+        public decimal? MinOrderAmount { get; set; }
+        public DateTime? ExpiredAt { get; set; }
+        public int Quantity { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
 }

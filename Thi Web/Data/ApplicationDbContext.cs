@@ -23,7 +23,11 @@ namespace TechShop.Data
         public DbSet<StoreBranch> StoreBranches { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<StoreInventory> StoreInventories { get; set; }
-
+        public DbSet<ProductVariantGroup> ProductVariantGroups { get; set; }
+        public DbSet<ProductVariantOption> ProductVariantOptions { get; set; }
+        public DbSet<ProductVariant> ProductVariants { get; set; }
+        public DbSet<ProductVariantValue> ProductVariantValues { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -43,6 +47,18 @@ namespace TechShop.Data
                 .HasForeignKey(si => si.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<ProductVariantValue>()
+                .HasOne(x => x.ProductVariant)
+                .WithMany(x => x.Values)
+                .HasForeignKey(x => x.ProductVariantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductVariantValue>()
+                .HasOne(x => x.ProductVariantOption)
+                .WithMany()
+                .HasForeignKey(x => x.ProductVariantOptionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // ===== SEED CATEGORIES =====
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Laptop", Description = "Máy tính xách tay các loại" },
@@ -58,7 +74,6 @@ namespace TechShop.Data
             );
 
             var d = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
             builder.Entity<Product>().HasData(
 
                 // ==========================================

@@ -10,7 +10,7 @@ namespace TechShop.Controllers
     // ================================================================
     // ADMIN PRODUCT CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Staff")]
     public class AdminProductController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -397,38 +397,26 @@ namespace TechShop.Controllers
             }
         }
 
-        //// ================================================================
-        //// ADMIN SERVICE CONTROLLER
-        //// ================================================================
-        //[Authorize(Roles = "Admin,Staff")]
-        //public class AdminServiceController : Controller
-        //{
-        //    private readonly ApplicationDbContext _context;
-        //    public AdminServiceController(ApplicationDbContext context)
-        //    {
-        //        _context = context;
-        //    }
-        //    public async Task<IActionResult> Index()
-        //    {
-        //        var items = await _context.ServiceTickets
-        //            .OrderByDescending(x => x.BookingDate)
-        //            .ToListAsync();
-        //        return View("~/Views/Admin/Service/Index.cshtml", items);
-        //    }
-        //    [HttpPost]
-        //    [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> UpdateStatus(int id, string status)
-        //    {
-        //        var ticket = await _context.ServiceTickets.FindAsync(id);
-        //        if (ticket == null) return NotFound();
-        //        if (!string.IsNullOrWhiteSpace(status))
-        //        {
-        //            ticket.Status = status;
-        //            await _context.SaveChangesAsync();
-        //            TempData["Success"] = $"Đã cập nhật phiếu dịch vụ #{ticket.Id} sang trạng thái {status}.";
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //}
+        [Authorize(Roles = "Admin")]
+        public class AdminCouponController : Controller
+        {
+            private readonly ApplicationDbContext _context;
+            public AdminCouponController(ApplicationDbContext context) => _context = context;
+            public async Task<IActionResult> Index()
+                => View(await _context.Coupons.OrderByDescending(x => x.Id).ToListAsync());
+            [HttpGet]
+            public IActionResult Create() => View(new Coupon());
+            [HttpPost]
+            [ValidateAntiForgeryToken]
+            public async Task<IActionResult> Create(Coupon model)
+            {
+                if (!ModelState.IsValid) return View(model);
+                model.Code = model.Code.Trim().ToUpperInvariant();
+                _context.Coupons.Add(model);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Đã tạo mã giảm giá.";
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
 }
