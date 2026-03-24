@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Data;
 using TechShop.Models;
+using TechShop.ViewModels.Admin;
 
 namespace TechShop.Controllers
 {
@@ -416,6 +417,62 @@ namespace TechShop.Controllers
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Đã tạo mã giảm giá.";
                 return RedirectToAction(nameof(Index));
+            }
+        }
+        // ================================================================
+        // ADMIN DASHBOARD CONTROLLER
+        // ================================================================
+        [Authorize(Roles = "Admin,Staff")]
+        public class AdminDashboardController : Controller
+        {
+            private readonly ApplicationDbContext _context;
+
+            public AdminDashboardController(ApplicationDbContext context)
+            {
+                _context = context;
+            }
+
+            public async Task<IActionResult> Index()
+            {
+                var completedOrders = _context.Orders.Where(o => o.Status == "Completed");
+
+                var totalRevenue = await completedOrders.SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+                var totalOrders = await _context.Orders.CountAsync();
+                var totalProducts = await _context.Products.CountAsync();
+
+                var topProducts = await _context.OrderDetails
+                    .Include(od => od.Product)
+                    .Include(od => od.Order)
+                    .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
+                    .GroupBy(od => new { od.ProductId, od.Product!.Name })
+                    .Select(g => new TopProductItemViewModel
+                    {
+                        ProductId = g.Key.ProductId,
+                        ProductName = g.Key.Name,
+                        SoldQuantity = g.Sum(x => x.Quantity),
+                        Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
+                    })
+                    .OrderByDescending(x => x.SoldQuantity)
+                    .Take(5)
+                    .ToListAsync();
+
+                var totalSold = topProducts.Sum(x => x.SoldQuantity);
+
+                var vm = new AdminDashboardViewModel
+                {
+                    TotalRevenue = totalRevenue,
+                    TotalOrders = totalOrders,
+                    TotalProducts = totalProducts,
+                    TopProducts = topProducts,
+                    SalesRatio = topProducts.Select(x => new SalesRatioItemViewModel
+                    {
+                        ProductName = x.ProductName,
+                        SoldQuantity = x.SoldQuantity,
+                        Percentage = totalSold == 0 ? 0 : Math.Round((double)x.SoldQuantity * 100 / totalSold, 2)
+                    }).ToList()
+                };
+
+                return View("~/Views/Admin/Dashboard/Index.cshtml", vm);
             }
         }
     }
