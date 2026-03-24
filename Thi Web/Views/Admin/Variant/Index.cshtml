@@ -1,0 +1,45 @@
+﻿@model List<TechShop.Models.ProductVariant>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Biến thể sản phẩm";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Biến thể sản phẩm</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Thêm biến thể</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Sản phẩm</th>
+                        <th>SKU</th>
+                        <th>Giá</th>
+                        <th>Tồn kho</th>
+                        <th>Thuộc tính</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var v in Model)
+                    {
+                        <tr>
+                            <td>@v.Id</td>
+                            <td>@v.Product?.Name</td>
+                            <td>@v.Sku</td>
+                            <td>@v.Price.ToString("N0") ₫</td>
+                            <td>@v.Stock</td>
+                            <td>
+                                @string.Join(" / ", v.Values.Select(x =>
+                                $"{x.ProductVariantOption?.ProductVariantGroup?.Name}: {x.ProductVariantOption?.Value}"))
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

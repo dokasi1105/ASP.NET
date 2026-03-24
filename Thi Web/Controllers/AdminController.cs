@@ -419,61 +419,123 @@ namespace TechShop.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
-        // ================================================================
-        // ADMIN DASHBOARD CONTROLLER
-        // ================================================================
-        [Authorize(Roles = "Admin,Staff")]
-        public class AdminDashboardController : Controller
+    }
+    // ================================================================
+    // ADMIN DASHBOARD CONTROLLER
+    // ================================================================
+    [Authorize(Roles = "Admin,Staff")]
+    public class AdminDashboardController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public AdminDashboardController(ApplicationDbContext context)
         {
-            private readonly ApplicationDbContext _context;
-
-            public AdminDashboardController(ApplicationDbContext context)
-            {
-                _context = context;
-            }
-
-            public async Task<IActionResult> Index()
-            {
-                var completedOrders = _context.Orders.Where(o => o.Status == "Completed");
-
-                var totalRevenue = await completedOrders.SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
-                var totalOrders = await _context.Orders.CountAsync();
-                var totalProducts = await _context.Products.CountAsync();
-
-                var topProducts = await _context.OrderDetails
-                    .Include(od => od.Product)
-                    .Include(od => od.Order)
-                    .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
-                    .GroupBy(od => new { od.ProductId, od.Product!.Name })
-                    .Select(g => new TopProductItemViewModel
-                    {
-                        ProductId = g.Key.ProductId,
-                        ProductName = g.Key.Name,
-                        SoldQuantity = g.Sum(x => x.Quantity),
-                        Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
-                    })
-                    .OrderByDescending(x => x.SoldQuantity)
-                    .Take(5)
-                    .ToListAsync();
-
-                var totalSold = topProducts.Sum(x => x.SoldQuantity);
-
-                var vm = new AdminDashboardViewModel
-                {
-                    TotalRevenue = totalRevenue,
-                    TotalOrders = totalOrders,
-                    TotalProducts = totalProducts,
-                    TopProducts = topProducts,
-                    SalesRatio = topProducts.Select(x => new SalesRatioItemViewModel
-                    {
-                        ProductName = x.ProductName,
-                        SoldQuantity = x.SoldQuantity,
-                        Percentage = totalSold == 0 ? 0 : Math.Round((double)x.SoldQuantity * 100 / totalSold, 2)
-                    }).ToList()
-                };
-
-                return View("~/Views/Admin/Dashboard/Index.cshtml", vm);
-            }
+            _context = context;
         }
+
+        public async Task<IActionResult> Index()
+        {
+            var completedOrders = _context.Orders.Where(o => o.Status == "Completed");
+
+            var totalRevenue = await completedOrders.SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+            var totalOrders = await _context.Orders.CountAsync();
+            var totalProducts = await _context.Products.CountAsync();
+
+            var topProducts = await _context.OrderDetails
+                .Include(od => od.Order)
+                .Include(od => od.Product)
+                .Where(od => od.Order != null && od.Order.Status == "Completed" && od.Product != null)
+                .GroupBy(od => od.Product!.Name)
+                .Select(g => new TopProductItemViewModel
+                {
+                    ProductName = g.Key,
+                    SoldQuantity = g.Sum(x => x.Quantity),
+                    Revenue = g.Sum(x => x.Quantity * x.UnitPrice)
+                })
+                .OrderByDescending(x => x.SoldQuantity)
+                .Take(5)
+                .ToListAsync();
+
+            var salesRatio = topProducts.Select(x => new SalesRatioItemViewModel
+            {
+                ProductName = x.ProductName,
+                SoldQuantity = x.SoldQuantity
+            }).ToList();
+
+            var vm = new AdminDashboardViewModel
+            {
+                TotalRevenue = totalRevenue,
+                TotalOrders = totalOrders,
+                TotalProducts = totalProducts,
+                TopProducts = topProducts,
+                SalesRatio = salesRatio
+            };
+
+            return View("~/Views/Admin/Dashboard/Index.cshtml", vm);
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
+    public class AdminVariantController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public AdminVariantController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var variants = await _context.ProductVariants
+                .Include(v => v.Product)
+                .Include(v => v.Values)
+                    .ThenInclude(vv => vv.ProductVariantOption)
+                        .ThenInclude(o => o!.ProductVariantGroup)
+                .OrderByDescending(v => v.Id)
+                .ToListAsync();
+
+            return View("~/Views/Admin/Variant/Index.cshtml", variants);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.Products = await _context.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
+            ViewBag.Options = await _context.ProductVariantOptions
+                .Include(o => o.ProductVariantGroup)
+                .OrderBy(o => o.ProductVariantGroup!.Name)
+                .ThenBy(o => o.Value)
+                .ToListAsync();
+
+            return View("~/Views/Admin/Variant/Create.cshtml", new ProductVariant());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ProductVariant model, List<int> selectedOptionIds)
+        {
+            ModelState.Remove("Product");
+            ModelState.Remove("Values");
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Products = await _context.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
+                ViewBag.Options = await _context.ProductVariantOptions.Include(o => o.ProductVariantGroup).ToListAsync();
+                return View("~/Views/Admin/Variant/Create.cshtml", model);
+            }
+
+            model.Values = selectedOptionIds.Select(x => new ProductVariantValue
+            {
+                ProductVariantOptionId = x
+            }).ToList();
+
+            _context.ProductVariants.Add(model);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Đã thêm biến thể sản phẩm.";
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }

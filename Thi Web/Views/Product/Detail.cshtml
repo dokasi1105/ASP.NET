@@ -558,7 +558,22 @@
                                     <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
                                 </div>
                             </div>
-
+                            @if (Model.Variants != null && Model.Variants.Any(v => v.IsActive))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label text-light fw-semibold">Chọn biến thể</label>
+                                    <select name="productVariantId" class="form-select bg-dark text-light border-secondary">
+                                        <option value="">-- Chọn biến thể --</option>
+                                        @foreach (var v in Model.Variants.Where(v => v.IsActive))
+                                        {
+                                            var label = string.Join(" / ", v.Values.Select(x => x.ProductVariantOption?.Value).Where(x => !string.IsNullOrWhiteSpace(x)));
+                                            <option value="@v.Id">
+                                                @label - @v.Price.ToString("N0") ₫ - Còn @v.Stock
+                                            </option>
+                                        }
+                                    </select>
+                                </div>
+                            }
                             <div class="action-btns">
                                 <button type="submit" class="btn-addcart">
                                     <i class="bi bi-cart-plus"></i> Thêm vào giỏ
