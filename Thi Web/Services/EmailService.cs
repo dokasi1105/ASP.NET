@@ -49,7 +49,7 @@ namespace TechShop.Services
 
             try
             {
-                var socketOpt = smtp.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
+                var socketOpt = smtp.EnableSsl ? SecureSocketOptions.Auto : SecureSocketOptions.None;
                 await client.ConnectAsync(smtp.Host, smtp.Port, socketOpt);
                 await client.AuthenticateAsync(smtp.Username, smtp.Password);
                 await client.SendAsync(message);
@@ -79,7 +79,7 @@ namespace TechShop.Services
                 message.Body = new MimeKit.BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
                 using var client = new MailKit.Net.Smtp.SmtpClient();
-                var socketOpt = smtp.EnableSsl ? MailKit.Security.SecureSocketOptions.StartTls : MailKit.Security.SecureSocketOptions.None;
+                var socketOpt = smtp.EnableSsl ? MailKit.Security.SecureSocketOptions.Auto : MailKit.Security.SecureSocketOptions.None;
                 await client.ConnectAsync(smtp.Host, smtp.Port, socketOpt);
                 await client.AuthenticateAsync(smtp.Username, smtp.Password);
                 await client.SendAsync(message);
