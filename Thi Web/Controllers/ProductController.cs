@@ -107,10 +107,9 @@ namespace TechShop.Controllers
                 .Include(p => p.Images)
                 .Include(p => p.Specifications)
                 .Include(p => p.WarrantyPackages)
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Values)
-                        .ThenInclude(vv => vv.ProductVariantOption)
-                            .ThenInclude(o => o!.ProductVariantGroup)
+                .Include(p => p.SelectedVariantOptions)
+                    .ThenInclude(x => x.ProductVariantOption)
+                        .ThenInclude(o => o!.ProductVariantGroup)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null) return NotFound();
@@ -132,35 +131,51 @@ namespace TechShop.Controllers
             int quantity = 1,
             int warrantyId = 0,
             bool isTradeIn = false,
-            int? productVariantId = null)
+            List<int>? selectedOptionIds = null)
         {
             var product = await _context.Products
                 .Include(p => p.WarrantyPackages)
-                .Include(p => p.Variants)
-                    .ThenInclude(v => v.Values)
-                        .ThenInclude(vv => vv.ProductVariantOption)
+                .Include(p => p.SelectedVariantOptions)
+                    .ThenInclude(x => x.ProductVariantOption)
+                        .ThenInclude(o => o!.ProductVariantGroup)
                 .FirstOrDefaultAsync(p => p.Id == productId);
 
             if (product == null) return NotFound();
 
             decimal finalPrice = product.DiscountPrice ?? product.Price;
             string extraOptions = "";
-            ProductVariant? variant = null;
-            if (productVariantId.HasValue)
-            {
-                variant = product.Variants.FirstOrDefault(v => v.Id == productVariantId.Value && v.IsActive);
-                if (variant == null)
-                {
-                    TempData["Error"] = "Biến thể không hợp lệ.";
-                    return RedirectToAction(nameof(Detail), new { id = productId });
-                }
 
-                finalPrice = variant.Price;
-                extraOptions += " [" + string.Join(" / ", variant.Values
-                    .Select(x => x.ProductVariantOption?.Value)
-                    .Where(x => !string.IsNullOrWhiteSpace(x))) + "]";
+            selectedOptionIds ??= new();
+
+            var validSelections = product.SelectedVariantOptions
+                .Where(x => selectedOptionIds.Contains(x.ProductVariantOptionId))
+                .Select(x => x.ProductVariantOption)
+                .Where(x => x != null)
+                .ToList();
+
+            var requiredGroupNames = product.SelectedVariantOptions
+                .Select(x => x.ProductVariantOption?.ProductVariantGroup?.Name)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            var selectedGroupNames = validSelections
+                .Select(x => x!.ProductVariantGroup?.Name)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            if (requiredGroupNames.Any() && selectedGroupNames.Count < requiredGroupNames.Count)
+            {
+                TempData["Error"] = "Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ hàng.";
+                return RedirectToAction(nameof(Detail), new { id = productId });
             }
-            // Gói bảo hành
+
+            if (validSelections.Any())
+            {
+                extraOptions += " [" + string.Join(" / ", validSelections.Select(x => x!.Value)) + "]";
+            }
+
             if (warrantyId > 0)
             {
                 var warranty = product.WarrantyPackages.FirstOrDefault(w => w.Id == warrantyId);
@@ -171,7 +186,6 @@ namespace TechShop.Controllers
                 }
             }
 
-            // Thu cũ đổi mới
             if (isTradeIn && product.IsTradeInEligible)
             {
                 decimal tradeInDiscount = (product.MaxTradeInValue ?? 0) * 0.3m;
@@ -185,8 +199,7 @@ namespace TechShop.Controllers
                 ProductName = product.Name + extraOptions,
                 Price = Math.Max(finalPrice, 0),
                 Quantity = quantity,
-                ImageUrl = product.ImageUrl,
-                ProductVariantId = variant?.Id // thêm field này vào CartItem nếu chưa có
+                ImageUrl = product.ImageUrl
             });
 
             TempData["Success"] = $"Đã thêm \"{product.Name}\" vào giỏ hàng!";

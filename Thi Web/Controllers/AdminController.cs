@@ -39,49 +39,113 @@ namespace TechShop.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.VariantGroups = await _context.ProductVariantGroups
+                .Include(g => g.Options)
+                .Where(g => g.IsActive)
+                .OrderBy(g => g.SortOrder)
+                .ToListAsync();
+
             return View("~/Views/Admin/Product/Create.cshtml", new Product());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product model)
+        public async Task<IActionResult> Create(Product model, List<int> selectedOptionIds)
         {
             ModelState.Remove("Category");
+            ModelState.Remove("SelectedVariantOptions");
+
             if (ModelState.IsValid)
             {
                 model.CreatedAt = DateTime.Now;
+                model.SelectedVariantOptions = selectedOptionIds
+                    .Distinct()
+                    .Select(id => new ProductVariantSelection
+                    {
+                        ProductVariantOptionId = id
+                    }).ToList();
+
                 _context.Products.Add(model);
                 await _context.SaveChangesAsync();
+
                 TempData["Success"] = "Thêm sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
+
             ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.VariantGroups = await _context.ProductVariantGroups
+                .Include(g => g.Options)
+                .Where(g => g.IsActive)
+                .OrderBy(g => g.SortOrder)
+                .ToListAsync();
+
             return View("~/Views/Admin/Product/Create.cshtml", model);
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            Product? product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.SelectedVariantOptions)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (product == null) return NotFound();
+
             ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.VariantGroups = await _context.ProductVariantGroups
+                .Include(g => g.Options)
+                .Where(g => g.IsActive)
+                .OrderBy(g => g.SortOrder)
+                .ToListAsync();
+
+            ViewBag.SelectedOptionIds = product.SelectedVariantOptions
+                .Select(x => x.ProductVariantOptionId)
+                .ToList();
+
             return View("~/Views/Admin/Product/Edit.cshtml", product);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product model)
+        public async Task<IActionResult> Edit(int id, Product model, List<int> selectedOptionIds)
         {
             if (id != model.Id) return NotFound();
+
             ModelState.Remove("Category");
+            ModelState.Remove("SelectedVariantOptions");
+
             if (ModelState.IsValid)
             {
+                var existingSelections = await _context.ProductVariantSelections
+                    .Where(x => x.ProductId == model.Id)
+                    .ToListAsync();
+
+                _context.ProductVariantSelections.RemoveRange(existingSelections);
+
+                model.SelectedVariantOptions = selectedOptionIds
+                    .Distinct()
+                    .Select(optionId => new ProductVariantSelection
+                    {
+                        ProductId = model.Id,
+                        ProductVariantOptionId = optionId
+                    }).ToList();
+
                 _context.Products.Update(model);
                 await _context.SaveChangesAsync();
+
                 TempData["Success"] = "Cập nhật sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
+
             ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.VariantGroups = await _context.ProductVariantGroups
+                .Include(g => g.Options)
+                .Where(g => g.IsActive)
+                .OrderBy(g => g.SortOrder)
+                .ToListAsync();
+
+            ViewBag.SelectedOptionIds = selectedOptionIds;
+
             return View("~/Views/Admin/Product/Edit.cshtml", model);
         }
 

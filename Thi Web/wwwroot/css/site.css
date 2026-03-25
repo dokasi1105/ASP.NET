@@ -1902,3 +1902,40 @@ body {
     background: #4b5563;
     border-color: #4b5563;
 }
+.detail-variant-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.variant-group-label {
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 8px;
+}
+
+.variant-pill {
+    border: 1px solid rgba(255,255,255,.14);
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s ease;
+}
+
+.variant-pill:hover {
+    border-color: #6366f1;
+    transform: translateY(-1px);
+}
+
+.variant-pill.active {
+    background: rgba(99,102,241,.16);
+    border-color: #818cf8;
+    box-shadow: 0 0 0 1px rgba(129,140,248,.16);
+}

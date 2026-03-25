@@ -602,6 +602,7 @@
                                     <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
                                 </div>
                             </div>
+
                             @if (Model.Variants != null && Model.Variants.Any(v => v.IsActive))
                             {
                                 <div class="mb-3">
@@ -618,6 +619,43 @@
                                     </select>
                                 </div>
                             }
+                            @{
+                                var selectedGroups = Model.SelectedVariantOptions?
+                                .Where(x => x.ProductVariantOption != null && x.ProductVariantOption.ProductVariantGroup != null)
+                                .GroupBy(x => x.ProductVariantOption!.ProductVariantGroup!.Name)
+                                .ToList();
+                            }
+
+                            @if (selectedGroups != null && selectedGroups.Any())
+                            {
+                                <div class="detail-variant-wrap">
+                                    @foreach (var g in selectedGroups)
+                                    {
+                                        <div class="detail-variant-group mb-3">
+                                            <div class="variant-group-label">@g.Key</div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach (var item in g.OrderBy(x => x.ProductVariantOption!.SortOrder))
+                                                {
+                                                    var opt = item.ProductVariantOption!;
+                                                    var isColorGroup = g.Key == "Màu Sắc";
+                                                    var textColor = !string.IsNullOrWhiteSpace(opt.ColorHex) ? opt.ColorHex : "#f8fafc";
+
+                                                    <button type="button"
+                                                            class="variant-pill"
+                                                            data-group="@g.Key"
+                                                            data-option-id="@opt.Id"
+                                                            style="@(isColorGroup ? $"color:{textColor};" : "")">
+                                                        @opt.Value
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <div id="selectedVariantInputs"></div>
+                            }
+
                             <div class="action-btns">
                                 <button type="submit" class="btn-addcart">
                                     <i class="bi bi-cart-plus"></i> Thêm vào giỏ
@@ -756,5 +794,46 @@
                     });
             });
         });
+    </script>
+    <script>
+        (function () {
+            const pills = document.querySelectorAll('.variant-pill');
+            const container = document.getElementById('selectedVariantInputs');
+            const form = document.getElementById('addToCartForm');
+
+            function rebuildHiddenInputs() {
+                if (!container) return;
+                container.innerHTML = '';
+
+                document.querySelectorAll('.variant-pill.active').forEach(pill => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'selectedOptionIds';
+                    input.value = pill.dataset.optionId;
+                    container.appendChild(input);
+                });
+            }
+
+            pills.forEach(pill => {
+                pill.addEventListener('click', function () {
+                    const group = pill.dataset.group;
+                    document.querySelectorAll('.variant-pill[data-group="' + group + '"]').forEach(x => x.classList.remove('active'));
+                    pill.classList.add('active');
+                    rebuildHiddenInputs();
+                });
+            });
+
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    const groups = [...new Set([...document.querySelectorAll('.variant-pill')].map(x => x.dataset.group))];
+                    const selectedGroups = [...new Set([...document.querySelectorAll('.variant-pill.active')].map(x => x.dataset.group))];
+
+                    if (groups.length > 0 && selectedGroups.length < groups.length) {
+                        e.preventDefault();
+                        alert('Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ hàng.');
+                    }
+                });
+            }
+        })();
     </script>
 }
