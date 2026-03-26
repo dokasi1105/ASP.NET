@@ -62,19 +62,20 @@
     }
 })();
 
-$(document).on("click", ".btn-wishlist", function () {
-    const id = $(this).data("id");
-    $.post("/Product/ToggleWishlist", { productId: id })
-        .done(function (res) {
-            // res là JSON khi đã login
-            alert(res.message || "Đã cập nhật.");
-        })
-        .fail(function (xhr) {
-            if (xhr.status === 401) {
-                window.location.href = "/Account/Login";
-            }
-        });
-});
+if (window.jQuery) {
+    $(document).on("click", ".btn-wishlist", function () {
+        const id = $(this).data("id");
+        $.post("/Product/ToggleWishlist", { productId: id })
+            .done(function (res) {
+                alert(res.message || "Đã cập nhật.");
+            })
+            .fail(function (xhr) {
+                if (xhr.status === 401) {
+                    window.location.href = "/Account/Login";
+                }
+            });
+    });
+}
 
 (function () {
     const THEME_KEY = "techshop-theme";
