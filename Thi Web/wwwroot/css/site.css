@@ -459,17 +459,18 @@ body {
 
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    border: none;
-    color: #fff;
-    box-shadow: 0 4px 15px var(--primary-glow);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 10px 30px var(--primary-glow);
+    filter: brightness(4);
 }
 
-    .btn-primary:hover {
-        background: linear-gradient(135deg, var(--primary-light), var(--accent));
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(37,99,235,0.4);
-        color: #fff;
-    }
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-light), var(--accent));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(37,99,235,0.5);
+    color: #fff;
+}
 
 .btn-outline-secondary {
     border-color: var(--border);
@@ -477,21 +478,21 @@ body {
     background: transparent;
 }
 
-    .btn-outline-secondary:hover {
-        background: rgba(255,255,255,0.06);
-        border-color: var(--text-muted);
-        color: var(--text-primary);
-    }
+.btn-outline-secondary:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
 
 .btn-outline-danger {
     border-color: var(--danger);
     color: var(--danger);
 }
 
-    .btn-outline-danger:hover {
-        background: var(--danger);
-        color: #fff;
-    }
+.btn-outline-danger:hover {
+    background: var(--danger);
+    color: #fff;
+}
 
 .btn-warning {
     background: var(--warning);
@@ -499,11 +500,11 @@ body {
     color: #000;
 }
 
-    .btn-warning:hover {
-        background: #fbbf24;
-        transform: translateY(-1px);
-        color: #000;
-    }
+.btn-warning:hover {
+    background: #fbbf24;
+    transform: translateY(-1px);
+    color: #000;
+}
 
 .btn-danger {
     background: var(--danger);
@@ -511,10 +512,10 @@ body {
     color: #fff;
 }
 
-    .btn-danger:hover {
-        background: #dc2626;
-        transform: translateY(-1px);
-    }
+.btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
 
 .btn-success {
     background: var(--success);
@@ -527,11 +528,11 @@ body {
     color: rgba(255,255,255,0.85);
 }
 
-    .btn-outline-light:hover {
-        background: rgba(255,255,255,0.1);
-        color: #fff;
-        border-color: rgba(255,255,255,0.6);
-    }
+.btn-outline-light:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-color: rgba(255,255,255,0.6);
+}
 
 /* ============================================
    FORMS
@@ -1920,7 +1921,7 @@ body {
 .variant-pill {
     border: 1px solid rgba(255,255,255,.14);
     background: #0f172a;
-    color: #f8fafc;
+    color: #ffffff;
     border-radius: 12px;
     padding: 8px 14px;
     font-size: .85rem;
@@ -1936,6 +1937,6 @@ body {
 
 .variant-pill.active {
     background: rgba(99,102,241,.16);
-    border-color: #818cf8;
+    border-color: #896d96cc;
     box-shadow: 0 0 0 1px rgba(129,140,248,.16);
 }
