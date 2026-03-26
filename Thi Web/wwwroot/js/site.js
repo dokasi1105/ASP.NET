@@ -80,36 +80,65 @@ $(document).on("click", ".btn-wishlist", function () {
     const THEME_KEY = "techshop-theme";
     const root = document.documentElement;
 
-    function updateThemeButton(theme) {
-        const icon = document.getElementById("themeToggleIcon");
-        const text = document.getElementById("themeToggleText");
-        if (!icon || !text) return;
+    function getSavedTheme() {
+        const saved = localStorage.getItem(THEME_KEY);
+        return saved === "dark" || saved === "light" ? saved : "light";
+    }
 
-        if (theme === "dark") {
-            icon.className = "bi bi-sun-fill";
-            text.textContent = "Light";
-        } else {
-            icon.className = "bi bi-moon-stars-fill";
-            text.textContent = "Dark";
-        }
+    function updateThemeButtons(theme) {
+        const buttons = document.querySelectorAll("[data-theme-toggle], #themeToggleBtn");
+
+        buttons.forEach(function (btn) {
+            const icon =
+                btn.querySelector("[data-theme-toggle-icon]") ||
+                btn.querySelector("i") ||
+                document.getElementById("themeToggleIcon");
+
+            const text =
+                btn.querySelector("[data-theme-toggle-text]") ||
+                document.getElementById("themeToggleText");
+
+            if (icon) {
+                icon.className = theme === "dark"
+                    ? "bi bi-sun-fill"
+                    : "bi bi-moon-stars-fill";
+            }
+
+            if (text) {
+                text.textContent = theme === "dark" ? "Light" : "Dark";
+            }
+
+            btn.setAttribute(
+                "aria-label",
+                theme === "dark"
+                    ? "Chuyển sang giao diện sáng"
+                    : "Chuyển sang giao diện tối"
+            );
+        });
     }
 
     function applyTheme(theme) {
         root.setAttribute("data-theme", theme);
         localStorage.setItem(THEME_KEY, theme);
-        updateThemeButton(theme);
+        updateThemeButtons(theme);
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        const initialTheme = root.getAttribute("data-theme") || localStorage.getItem(THEME_KEY) || "light";
-        applyTheme(initialTheme);
+        applyTheme(getSavedTheme());
 
-        const btn = document.getElementById("themeToggleBtn");
-        if (!btn) return;
-
-        btn.addEventListener("click", function () {
-            const currentTheme = root.getAttribute("data-theme") || "light";
-            applyTheme(currentTheme === "dark" ? "light" : "dark");
+        const buttons = document.querySelectorAll("[data-theme-toggle], #themeToggleBtn");
+        buttons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                const currentTheme = root.getAttribute("data-theme") || "light";
+                const nextTheme = currentTheme === "dark" ? "light" : "dark";
+                applyTheme(nextTheme);
+            });
         });
+    });
+
+    window.addEventListener("storage", function (e) {
+        if (e.key === THEME_KEY) {
+            applyTheme(getSavedTheme());
+        }
     });
 })();
