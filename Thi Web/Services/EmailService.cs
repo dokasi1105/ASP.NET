@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using System.Net;
@@ -19,11 +19,13 @@ namespace TechShop.Services
     {
         private readonly IConfiguration _config;
         private readonly ILogger<EmailService> _logger;
+        private readonly IPdfService _pdfService;
 
-        public EmailService(IConfiguration config, ILogger<EmailService> logger)
+        public EmailService(IConfiguration config, ILogger<EmailService> logger, IPdfService pdfService)
         {
             _config = config;
             _logger = logger;
+            _pdfService = pdfService;
         }
 
         private (string Host, int Port, bool EnableSsl, string Username, string Password, string SenderEmail, string SenderName) GetSmtp()
@@ -175,40 +177,134 @@ namespace TechShop.Services
             var message = new MimeMessage();
             message.From.Add(new MailboxAddress(smtp.SenderName, smtp.SenderEmail));
             message.To.Add(new MailboxAddress(customerName ?? "", toEmail));
-            message.Subject = $"Xác nhận đơn hàng #{order.Id} từ TechShop";
+            message.Subject = $"⚡ Xác nhận đơn hàng #{order.Id:D6} - TechShop";
 
-            var html =
-                $@"<div style='font-family:Arial,sans-serif; color:#111'>
-                        <h2 style='color:#4f46e5;'>Cảm ơn bạn đã đặt hàng, {safeName}!</h2>
-                        <p>Đơn hàng <b>#{order.Id}</b> ghi nhận lúc {order.OrderDate:dd/MM/yyyy HH:mm}.</p>
-                        <table border='1' cellpadding='8' cellspacing='0' style='border-collapse:collapse; width:100%; max-width:700px'>
-                            <tr style='background:#f1f5f9'>
-                                <th align='left'>Sản phẩm</th>
-                                <th align='center'>Số lượng</th>
-                                <th align='right'>Đơn giá</th>
-                            </tr>";
-
-            foreach (var d in order.OrderDetails)
+            // HTML email body
+            var itemsHtml = string.Join("", (order.OrderDetails ?? []).Select((d, i) =>
             {
                 var pname = WebUtility.HtmlEncode(d.Product?.Name ?? $"SP#{d.ProductId}");
-                html += $@"
-                    <tr>
-                        <td>{pname}</td>
-                        <td align='center'>{d.Quantity}</td>
-                        <td align='right'>{d.UnitPrice:N0} ₫</td>
-                    </tr>";
-            }
+                string rowBg = i % 2 == 0 ? "#f9fafb" : "#ffffff";
+                decimal lineTotal = d.UnitPrice * d.Quantity;
+                return $@"
+                <tr style='background:{rowBg}'>
+                    <td style='padding:10px 12px;border-bottom:1px solid #e5e7eb'>{pname}</td>
+                    <td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:center'>{d.Quantity}</td>
+                    <td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right'>{d.UnitPrice:N0} ₫</td>
+                    <td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:bold'>{lineTotal:N0} ₫</td>
+                </tr>";
+            }));
 
-            html += $@"
-                        <tr style='font-weight:bold'>
-                            <td colspan='2' align='right'>Tổng thanh toán:</td>
-                            <td align='right' style='color:#dc3545'>{order.TotalAmount:N0} ₫</td>
-                        </tr>
-                    </table>
-                    <p>TechShop sẽ liên hệ và giao hàng sớm nhất.</p>
-                </div>";
+            string html = $@"<!DOCTYPE html>
+<html lang='vi'>
+<head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'></head>
+<body style='margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif'>
+  <table width='100%' cellpadding='0' cellspacing='0' style='background:#f3f4f6;padding:32px 0'>
+    <tr><td align='center'>
+      <table width='640' cellpadding='0' cellspacing='0' style='background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)'>
 
-            message.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
+        <!-- Header -->
+        <tr>
+          <td style='background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:32px 40px;text-align:center'>
+            <div style='font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-1px'>⚡ TechShop</div>
+            <div style='font-size:13px;color:rgba(255,255,255,.75);margin-top:4px'>Cửa hàng công nghệ hàng đầu</div>
+          </td>
+        </tr>
+
+        <!-- Greeting -->
+        <tr>
+          <td style='padding:32px 40px 0'>
+            <h2 style='margin:0 0 8px;font-size:22px;color:#111827'>Cảm ơn bạn đã đặt hàng, {safeName}! 🎉</h2>
+            <p style='margin:0;color:#6b7280;font-size:14px'>Đơn hàng <strong style='color:#4f46e5'>#{order.Id:D6}</strong> đã được ghi nhận lúc <strong>{order.OrderDate:dd/MM/yyyy HH:mm}</strong>.</p>
+          </td>
+        </tr>
+
+        <!-- Info cards -->
+        <tr>
+          <td style='padding:20px 40px'>
+            <table width='100%' cellpadding='0' cellspacing='0'>
+              <tr>
+                <td width='48%' style='background:#f9fafb;border-radius:8px;padding:16px;vertical-align:top'>
+                  <div style='font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px'>Thông tin giao hàng</div>
+                  <div style='font-size:13px;color:#374151;line-height:1.6'>
+                    <strong>{WebUtility.HtmlEncode(order.FullName)}</strong><br>
+                    {WebUtility.HtmlEncode(order.Phone ?? "")}<br>
+                    {WebUtility.HtmlEncode(order.Address ?? "")}<br>
+                    {WebUtility.HtmlEncode(order.City ?? "")} {WebUtility.HtmlEncode(order.PostalCode ?? "")}
+                  </div>
+                </td>
+                <td width='4%'></td>
+                <td width='48%' style='background:#f9fafb;border-radius:8px;padding:16px;vertical-align:top'>
+                  <div style='font-size:11px;font-weight:700;color:#9ca3af;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px'>Chi tiết đơn hàng</div>
+                  <div style='font-size:13px;color:#374151;line-height:1.6'>
+                    Mã đơn: <strong style='color:#4f46e5'>#{order.Id:D6}</strong><br>
+                    Ngày đặt: <strong>{order.OrderDate:dd/MM/yyyy}</strong><br>
+                    Trạng thái: <strong style='color:#d97706'>Đang xử lý</strong>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Products table -->
+        <tr>
+          <td style='padding:0 40px 24px'>
+            <table width='100%' cellpadding='0' cellspacing='0' style='border-radius:8px;overflow:hidden;border:1px solid #e5e7eb'>
+              <thead>
+                <tr style='background:#4f46e5'>
+                  <th style='padding:12px 12px;text-align:left;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px'>SẢN PHẨM</th>
+                  <th style='padding:12px 12px;text-align:center;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;width:60px'>SL</th>
+                  <th style='padding:12px 12px;text-align:right;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;width:110px'>ĐƠN GIÁ</th>
+                  <th style='padding:12px 12px;text-align:right;color:#fff;font-size:12px;font-weight:700;letter-spacing:.5px;width:120px'>THÀNH TIỀN</th>
+                </tr>
+              </thead>
+              <tbody>
+                {itemsHtml}
+              </tbody>
+              <tfoot>
+                <tr style='background:#f9fafb'>
+                  <td colspan='3' style='padding:14px 12px;text-align:right;font-size:14px;font-weight:700;color:#111827'>TỔNG THANH TOÁN:</td>
+                  <td style='padding:14px 12px;text-align:right;font-size:17px;font-weight:800;color:#dc2626'>{order.TotalAmount:N0} ₫</td>
+                </tr>
+              </tfoot>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Note about PDF -->
+        <tr>
+          <td style='padding:0 40px 24px'>
+            <div style='background:#eff6ff;border-left:4px solid #4f46e5;border-radius:4px;padding:12px 16px;font-size:13px;color:#1e40af'>
+              📎 Hóa đơn PDF chi tiết đã được đính kèm trong email này.
+            </div>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style='background:#f9fafb;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb'>
+            <p style='margin:0;font-size:13px;color:#6b7280'>TechShop sẽ liên hệ và giao hàng trong thời gian sớm nhất.</p>
+            <p style='margin:8px 0 0;font-size:12px;color:#9ca3af'>© 2025 TechShop. Cảm ơn quý khách đã tin tưởng! 🙏</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>";
+
+            // Generate PDF invoice
+            byte[] pdfBytes = _pdfService.GenerateOrderInvoicePdf(order, customerName ?? "Khách hàng");
+
+            // Build message with PDF attachment
+            var bodyBuilder = new BodyBuilder { HtmlBody = html };
+            bodyBuilder.Attachments.Add(
+                $"HoaDon_TechShop_{order.Id:D6}.pdf",
+                pdfBytes,
+                new MimeKit.ContentType("application", "pdf"));
+
+            message.Body = bodyBuilder.ToMessageBody();
             await SendEmailAsync(message);
         }
     }

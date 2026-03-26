@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -118,6 +118,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHostedService<OrderCleanupService>();
 var app = builder.Build();
