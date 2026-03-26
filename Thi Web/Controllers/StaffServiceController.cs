@@ -5,7 +5,7 @@ using TechShop.Data;
 
 namespace TechShop.Controllers
 {
-    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Authorize(Roles = "Staff,Employee,Nh�n vi�n")]
     [Route("Staff/Service/{action=Index}")]
     public class StaffServiceController : Controller
     {
@@ -30,7 +30,7 @@ namespace TechShop.Controllers
             {
                 ticket.Status = status;
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "ÄÃ£ cáº­p nháº­t tráº¡ng thÃ¡i phiáº¿u dá»‹ch vá»¥.";
+                TempData["Success"] = "Đã cập nhật trạng thái phiếu dịch vụ.";
             }
             return RedirectToAction(nameof(Index));
         }

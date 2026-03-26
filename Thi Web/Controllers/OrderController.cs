@@ -94,9 +94,9 @@ namespace TechShop.Controllers
                 x.Quantity > 0 &&
                 (!x.ExpiredAt.HasValue || x.ExpiredAt > DateTime.Now));
             if (coupon == null)
-                return (0m, "MÃ£ giáº£m giÃ¡ khÃ´ng há»£p lá»‡.", null);
+                return (0m, "Mã giảm giá không hợp lệ.", null);
             if (coupon.MinOrderAmount.HasValue && cartTotal < coupon.MinOrderAmount.Value)
-                return (0m, $"ÄÆ¡n hÃ ng pháº£i tá»« {coupon.MinOrderAmount.Value:N0} â‚« Ä‘á»ƒ dÃ¹ng mÃ£.", null);
+                return (0m, $"Đơn hàng phải từ {coupon.MinOrderAmount.Value:N0} ₫ để dùng mã.", null);
             decimal rawDiscount = cartTotal * coupon.DiscountPercent / 100m;
             decimal discount = coupon.MaxDiscountAmount.HasValue
                 ? Math.Min(rawDiscount, coupon.MaxDiscountAmount.Value)
@@ -202,7 +202,7 @@ namespace TechShop.Controllers
                 {
                     await _emailService.SendOrderConfirmationAsync(
                         order.CustomerEmail,
-                        user.FullName ?? user.UserName ?? "KhÃ¡ch hÃ ng",
+                        user.FullName ?? user.UserName ?? "Khách hàng",
                         orderForEmail);
                 }
                 catch (Exception ex)
@@ -210,7 +210,7 @@ namespace TechShop.Controllers
                     _logger.LogError(ex,
                         "Send order email failed. OrderId={OrderId}, To={Email}, UserId={UserId}",
                         order.Id, order.CustomerEmail, user.Id);
-                    TempData["Warning"] = "Äáº·t hÃ ng thÃ nh cÃ´ng nhÆ°ng gá»­i email xÃ¡c nháº­n tháº¥t báº¡i. Vui lÃ²ng kiá»ƒm tra cáº¥u hÃ¬nh SMTP.";
+                    TempData["Warning"] = "Đặt hàng thành công nhưng gửi email xác nhận thất bại. Vui lòng kiểm tra cấu hình SMTP.";
                 }
             }
 

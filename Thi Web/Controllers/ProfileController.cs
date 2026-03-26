@@ -61,7 +61,7 @@ namespace TechShop.Controllers
 
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
-                TempData["Success"] = "Cáº­p nháº­t thÃ´ng tin thÃ nh cÃ´ng!";
+                TempData["Success"] = "Cập nhật thông tin thành công!";
             else
                 foreach (var e in result.Errors)
                     ModelState.AddModelError("", e.Description);
@@ -80,13 +80,13 @@ namespace TechShop.Controllers
                 string.IsNullOrEmpty(model.NewPassword) ||
                 string.IsNullOrEmpty(model.ConfirmPassword))
             {
-                TempData["Error"] = "Vui lÃ²ng Ä‘iá»n Ä‘áº§y Ä‘á»§ thÃ´ng tin máº­t kháº©u.";
+                TempData["Error"] = "Vui lòng điền đầy đủ thông tin mật khẩu.";
                 return RedirectToAction(nameof(Index));
             }
 
             if (model.NewPassword != model.ConfirmPassword)
             {
-                TempData["Error"] = "Máº­t kháº©u xÃ¡c nháº­n khÃ´ng khá»›p.";
+                TempData["Error"] = "Mật khẩu xác nhận không khớp.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -94,11 +94,11 @@ namespace TechShop.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.RefreshSignInAsync(user);
-                TempData["Success"] = "Äá»•i máº­t kháº©u thÃ nh cÃ´ng!";
+                TempData["Success"] = "Đổi mật khẩu thành công!";
             }
             else
             {
-                TempData["Error"] = "Máº­t kháº©u hiá»‡n táº¡i khÃ´ng Ä‘Ãºng.";
+                TempData["Error"] = "Mật khẩu hiện tại không đúng.";
             }
 
             return RedirectToAction(nameof(Index));
@@ -113,7 +113,7 @@ namespace TechShop.Controllers
 
             if (avatarFile == null || avatarFile.Length == 0)
             {
-                TempData["Error"] = "Vui lÃ²ng chá»n áº£nh avatar.";
+                TempData["Error"] = "Vui lòng chọn ảnh avatar.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -126,8 +126,8 @@ namespace TechShop.Controllers
 
             var result = await _userManager.UpdateAsync(user);
             TempData[result.Succeeded ? "Success" : "Error"] = result.Succeeded
-                ? "Cáº­p nháº­t avatar thÃ nh cÃ´ng!"
-                : "KhÃ´ng thá»ƒ cáº­p nháº­t avatar.";
+                ? "Cập nhật avatar thành công!"
+                : "Không thể cập nhật avatar.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -136,15 +136,15 @@ namespace TechShop.Controllers
         {
             const long maxBytes = 2 * 1024 * 1024; // 2MB
             if (avatarFile.Length > maxBytes)
-                return (false, "Avatar quÃ¡ lá»›n (tá»‘i Ä‘a 2MB).");
+                return (false, "Avatar quá lớn (tối đa 2MB).");
 
             var allowedExt = new[] { ".jpg", ".jpeg", ".png", ".webp" };
             var ext = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
             if (!allowedExt.Contains(ext))
-                return (false, "Chá»‰ cho phÃ©p áº£nh .jpg, .jpeg, .png, .webp");
+                return (false, "Chỉ cho phép ảnh .jpg, .jpeg, .png, .webp");
 
             if (avatarFile.ContentType == null || !avatarFile.ContentType.StartsWith("image/"))
-                return (false, "File upload khÃ´ng pháº£i hÃ¬nh áº£nh.");
+                return (false, "File upload không phải hình ảnh.");
 
             var uploads = Path.Combine(_env.WebRootPath, "uploads", "avatars");
             Directory.CreateDirectory(uploads);
@@ -176,27 +176,27 @@ namespace TechShop.Controllers
         public int LoyaltyPoints { get; set; }
         public string MembershipTier { get; set; } = "Bronze";
 
-        [Required(ErrorMessage = "Há» tÃªn lÃ  báº¯t buá»™c")]
-        [Display(Name = "Há» vÃ  tÃªn")]
+        [Required(ErrorMessage = "Họ tên là bắt buộc")]
+        [Display(Name = "Họ và tên")]
         public string FullName { get; set; } = string.Empty;
 
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
-        [Display(Name = "Sá»‘ Ä‘iá»‡n thoáº¡i")]
+        [Display(Name = "Số điện thoại")]
         public string PhoneNumber { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
-        [Display(Name = "Máº­t kháº©u hiá»‡n táº¡i")]
+        [Display(Name = "Mật khẩu hiện tại")]
         public string? CurrentPassword { get; set; }
 
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự")]
         [DataType(DataType.Password)]
-        [Display(Name = "Máº­t kháº©u má»›i")]
+        [Display(Name = "Mật khẩu mới")]
         public string? NewPassword { get; set; }
 
         [DataType(DataType.Password)]
-        [Display(Name = "XÃ¡c nháº­n máº­t kháº©u má»›i")]
+        [Display(Name = "Xác nhận mật khẩu mới")]
         public string? ConfirmPassword { get; set; }
     }
 }

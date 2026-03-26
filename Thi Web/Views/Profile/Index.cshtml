@@ -4,6 +4,14 @@
     ViewData["Title"] = "Hồ sơ cá nhân";
     var currentUser = await UserManager.GetUserAsync(User);
     var is2FAEnabled = currentUser != null && await UserManager.GetTwoFactorEnabledAsync(currentUser);
+    var roles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var primaryRole = roles.FirstOrDefault() ?? "Member";
+    // Map role label and colors
+    var (roleLabel, roleIconClass, roleGradient, roleGlow, roleBorder) = primaryRole switch {
+        "Admin" => ("Quản trị viên", "bi-shield-fill-check", "linear-gradient(135deg,#ef4444,#f87171)", "rgba(239,68,68,.35)", "rgba(239,68,68,.3)"),
+        "Staff" or "Employee" or "Nhân viên" => ("Nhân viên", "bi-person-badge-fill", "linear-gradient(135deg,#f59e0b,#fbbf24)", "rgba(245,158,11,.35)", "rgba(245,158,11,.3)"),
+        _ => ("Thành viên", "bi-person-check-fill", "linear-gradient(135deg,#6366f1,#818cf8)", "rgba(99,102,241,.35)", "rgba(99,102,241,.3)")
+    };
 }
 
 <style>
@@ -250,6 +258,92 @@
         justify-content: center;
         align-items: center;
     }
+
+    /* Role Badge */
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 14px 5px 10px;
+        border-radius: 100px;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #fff;
+        border: 1px solid;
+        position: relative;
+        overflow: hidden;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .role-badge:hover {
+        transform: translateY(-1px);
+    }
+    .role-badge i {
+        font-size: .95rem;
+        flex-shrink: 0;
+    }
+    .role-badge::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255,255,255,.08);
+        border-radius: inherit;
+    }
+
+    /* Role Card (full-width) */
+    .role-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: border-color .25s;
+    }
+    .role-card:hover { border-color: rgba(99,102,241,.25); }
+    .role-card-body {
+        padding: 22px 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .role-icon-wrap {
+        width: 54px; height: 54px;
+        border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        color: #fff;
+    }
+    .role-info h6 {
+        margin: 0 0 4px;
+        font-size: .95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .role-info p {
+        margin: 0;
+        font-size: .82rem;
+        color: var(--text-secondary);
+    }
+    .role-pill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-left: auto;
+    }
+    .role-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 14px;
+        border-radius: 100px;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        color: #fff;
+        border: 1px solid;
+    }
 </style>
 
 <!-- ===== PAGE HEADER ===== -->
@@ -273,6 +367,12 @@
                     <span>
                         <i class="bi bi-shield-@(is2FAEnabled ? "check" : "x")"></i>
                         2FA: @(is2FAEnabled ? "Đang bật" : "Chưa bật")
+                    </span>
+                </div>
+                <div class="mt-2">
+                    <span class="role-badge" style="background:@roleGradient;border-color:@roleBorder;box-shadow:0 4px 14px @roleGlow">
+                        <i class="bi @roleIconClass"></i>
+                        @roleLabel
                     </span>
                 </div>
             </div>
@@ -425,6 +525,50 @@
                         <a asp-controller="Account" asp-action="TwoFactorSetup" class="btn-2fa enable">
                             <i class="bi bi-shield-check"></i> Bật 2FA ngay
                         </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Card -->
+        <div class="role-card">
+            <div class="pf-card-head">
+                <div class="pf-card-icon" style="background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2)">
+                    <i class="bi bi-person-badge" style="color:#818cf8"></i>
+                </div>
+                <h6>Vai trò tài khoản</h6>
+            </div>
+            <div class="role-card-body">
+                <div class="role-icon-wrap" style="background:@roleGradient;box-shadow:0 6px 20px @roleGlow">
+                    <i class="bi @roleIconClass"></i>
+                </div>
+                <div class="role-info">
+                    <h6>@roleLabel</h6>
+                    <p>
+                        @if (primaryRole == "Admin")
+                        {
+                            <span>Toàn quyền quản trị hệ thống — truy cập tất cả chức năng.</span>
+                        }
+                        else if (primaryRole == "Staff" || primaryRole == "Employee" || primaryRole == "Nhân viên")
+                        {
+                            <span>Quản lý vận hành cửa hàng — không có quyền quản lý người dùng &amp; phân quyền.</span>
+                        }
+                        else
+                        {
+                            <span>Khách hàng thông thường — mua sắm, đặt dịch vụ và quản lý đơn hàng.</span>
+                        }
+                    </p>
+                </div>
+                <div class="role-pill-list">
+                    @foreach (var r in roles)
+                    {
+                        var pillColor = r == "Admin" ? ("linear-gradient(135deg,#ef4444,#f87171)", "rgba(239,68,68,.3)"):
+                                       (r == "Staff" || r == "Employee") ? ("linear-gradient(135deg,#f59e0b,#fbbf24)", "rgba(245,158,11,.3)") :
+                                       ("linear-gradient(135deg,#6366f1,#818cf8)", "rgba(99,102,241,.3)");
+                        <span class="role-pill" style="background:@pillColor.Item1;border-color:@pillColor.Item2;box-shadow:0 2px 10px @pillColor.Item2">
+                            <i class="bi bi-check-circle-fill" style="font-size:.65rem"></i>
+                            @r
+                        </span>
                     }
                 </div>
             </div>

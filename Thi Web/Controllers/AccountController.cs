@@ -42,14 +42,14 @@ namespace TechShop.Controllers
 
             if (result.Succeeded)
             {
-                TempData["Success"] = "ÄÄƒng nháº­p thÃ nh cÃ´ng!";
+                TempData["Success"] = "Đăng nhập thành công!";
                 return RedirectToLocal(returnUrl);
             }
 
             if (result.RequiresTwoFactor)
                 return RedirectToAction(nameof(TwoFactorLogin), new { rememberMe = model.RememberMe });
 
-            ModelState.AddModelError("", "Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng.");
+            ModelState.AddModelError("", "Email hoặc mật khẩu không đúng.");
             return View(model);
         }
 
@@ -80,15 +80,15 @@ namespace TechShop.Controllers
                 {
                     await _emailService.SendAsync(
                         model.Email,
-                        "ChÃ o má»«ng Ä‘áº¿n vá»›i TechShop",
-                        $"<h2>Xin chÃ o {System.Net.WebUtility.HtmlEncode(model.FullName)}</h2><p>TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c táº¡o thÃ nh cÃ´ng.</p>");
+                        "Chào mừng đến với TechShop",
+                        $"<h2>Xin chào {System.Net.WebUtility.HtmlEncode(model.FullName)}</h2><p>Tài khoản của bạn đã được tạo thành công.</p>");
                 }
                 catch
                 {
-                    // khÃ´ng cháº·n Ä‘Äƒng kÃ½ náº¿u email lá»—i
+                    // không chặn đăng ký nếu email lỗi
                 }
 
-                TempData["Success"] = "ÄÄƒng kÃ½ thÃ nh cÃ´ng! ChÃ o má»«ng báº¡n Ä‘áº¿n vá»›i TechShop.";
+                TempData["Success"] = "Đăng ký thành công! Chào mừng bạn đến với TechShop.";
                 return RedirectToAction("Index", "Home");
             }
             foreach (var error in result.Errors)
@@ -116,7 +116,7 @@ namespace TechShop.Controllers
             var providerExists = providers.Any(p => string.Equals(p.Name, provider, StringComparison.OrdinalIgnoreCase));
             if (!providerExists)
             {
-                TempData["Error"] = $"ÄÄƒng nháº­p {provider} chÆ°a Ä‘Æ°á»£c cáº¥u hÃ¬nh. Vui lÃ²ng kiá»ƒm tra appsettings.";
+                TempData["Error"] = $"Đăng nhập {provider} chưa được cấu hình. Vui lòng kiểm tra appsettings.";
                 return RedirectToAction(nameof(Login), new { returnUrl });
             }
 
@@ -131,25 +131,25 @@ namespace TechShop.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                TempData["Error"] = "KhÃ´ng láº¥y Ä‘Æ°á»£c thÃ´ng tin tá»« máº¡ng xÃ£ há»™i. Vui lÃ²ng thá»­ láº¡i.";
+                TempData["Error"] = "Không lấy được thông tin từ mạng xã hội. Vui lòng thử lại.";
                 return RedirectToAction(nameof(Login));
             }
 
-            // Thá»­ Ä‘Äƒng nháº­p báº±ng external provider
+            // Thử đăng nhập bằng external provider
             var result = await _signInManager.ExternalLoginSignInAsync(
                 info.LoginProvider, info.ProviderKey, isPersistent: false);
 
             if (result.Succeeded)
             {
-                TempData["Success"] = $"ÄÄƒng nháº­p báº±ng {info.LoginProvider} thÃ nh cÃ´ng!";
+                TempData["Success"] = $"Đăng nhập bằng {info.LoginProvider} thành công!";
                 return RedirectToLocal(returnUrl);
             }
 
-            // Láº¥y email & name tá»« claims
+            // Lấy email & name từ claims
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
             var name = info.Principal.FindFirstValue(ClaimTypes.Name) ?? "";
 
-            // Facebook Ä‘Ã´i khi khÃ´ng tráº£ email â€” dÃ¹ng ProviderKey lÃ m fallback
+            // Facebook đôi khi không trả email — dùng ProviderKey làm fallback
             if (string.IsNullOrEmpty(email))
             {
                 email = $"{info.ProviderKey}@facebook.com";
@@ -173,7 +173,7 @@ namespace TechShop.Controllers
                     foreach (var error in createResult.Errors)
                         ModelState.AddModelError("", error.Description);
 
-                    TempData["Error"] = "KhÃ´ng thá»ƒ táº¡o tÃ i khoáº£n: " +
+                    TempData["Error"] = "Không thể tạo tài khoản: " +
                         string.Join(", ", createResult.Errors.Select(e => e.Description));
                     return RedirectToAction(nameof(Login));
                 }
@@ -184,16 +184,16 @@ namespace TechShop.Controllers
                 {
                     await _emailService.SendAsync(
                         user.Email!,
-                        "ÄÄƒng kÃ½ báº±ng Google thÃ nh cÃ´ng",
-                        $"<p>Xin chÃ o {System.Net.WebUtility.HtmlEncode(user.FullName ?? user.Email!)}, tÃ i khoáº£n Google cá»§a báº¡n Ä‘Ã£ liÃªn káº¿t thÃ nh cÃ´ng vá»›i TechShop.</p>");
+                        "Đăng ký bằng Google thành công",
+                        $"<p>Xin chào {System.Net.WebUtility.HtmlEncode(user.FullName ?? user.Email!)}, tài khoản Google của bạn đã liên kết thành công với TechShop.</p>");
                 }
                 catch
                 {
-                    // khÃ´ng cháº·n luá»“ng login
+                    // không chặn luồng login
                 }
             }
 
-            // Gáº¯n external login vÃ o tÃ i khoáº£n
+            // Gắn external login vào tài khoản
             var loginInfo = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
             if (loginInfo == null)
             {
@@ -201,7 +201,7 @@ namespace TechShop.Controllers
             }
 
             await _signInManager.SignInAsync(user, isPersistent: false);
-            TempData["Success"] = $"ÄÄƒng nháº­p báº±ng {info.LoginProvider} thÃ nh cÃ´ng!";
+            TempData["Success"] = $"Đăng nhập bằng {info.LoginProvider} thành công!";
             return RedirectToLocal(returnUrl);
         }
 
@@ -240,12 +240,12 @@ namespace TechShop.Controllers
 
             if (!isValid)
             {
-                TempData["Error"] = "MÃ£ xÃ¡c minh khÃ´ng Ä‘Ãºng. Vui lÃ²ng thá»­ láº¡i.";
+                TempData["Error"] = "Mã xác minh không đúng. Vui lòng thử lại.";
                 return RedirectToAction(nameof(TwoFactorSetup));
             }
 
             await _userManager.SetTwoFactorEnabledAsync(user, true);
-            TempData["Success"] = "ÄÃ£ báº­t xÃ¡c minh 2 bÆ°á»›c thÃ nh cÃ´ng!";
+            TempData["Success"] = "Đã bật xác minh 2 bước thành công!";
             return RedirectToAction("Index", "Profile");
         }
 
@@ -259,7 +259,7 @@ namespace TechShop.Controllers
             if (user != null)
                 await _userManager.SetTwoFactorEnabledAsync(user, false);
 
-            TempData["Success"] = "ÄÃ£ táº¯t xÃ¡c minh 2 bÆ°á»›c.";
+            TempData["Success"] = "Đã tắt xác minh 2 bước.";
             return RedirectToAction("Index", "Profile");
         }
 
@@ -280,11 +280,11 @@ namespace TechShop.Controllers
 
             if (result.Succeeded)
             {
-                TempData["Success"] = "ÄÄƒng nháº­p thÃ nh cÃ´ng!";
+                TempData["Success"] = "Đăng nhập thành công!";
                 return RedirectToAction("Index", "Home");
             }
 
-            TempData["Error"] = "MÃ£ xÃ¡c minh khÃ´ng Ä‘Ãºng. Vui lÃ²ng thá»­ láº¡i.";
+            TempData["Error"] = "Mã xác minh không đúng. Vui lòng thử lại.";
             return View();
         }
 
@@ -307,7 +307,7 @@ namespace TechShop.Controllers
 
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            // KhÃ´ng tiáº¿t lá»™ email cÃ³ tá»“n táº¡i hay khÃ´ng
+            // Không tiết lộ email có tồn tại hay không
             if (user == null)
                 return RedirectToAction(nameof(ForgotPasswordConfirmation));
 
@@ -336,7 +336,7 @@ namespace TechShop.Controllers
 
             var user = await _userManager.FindByEmailAsync(model.Email);
 
-            // KhÃ´ng tiáº¿t lá»™ email
+            // Không tiết lộ email
             if (user == null)
                 return RedirectToAction(nameof(ResetPasswordConfirmation));
 
@@ -347,7 +347,7 @@ namespace TechShop.Controllers
             }
             catch
             {
-                ModelState.AddModelError("", "MÃ£ Ä‘áº·t láº¡i máº­t kháº©u khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n.");
+                ModelState.AddModelError("", "Mã đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
                 return View(model);
             }
 

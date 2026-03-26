@@ -40,17 +40,17 @@ namespace TechShop.Controllers
                 .Where(p => p.IsActive)
                 .AsQueryable();
 
-            // Lá»c theo CategoryId
+            // Lọc theo CategoryId
             if (category.HasValue)
                 query = query.Where(p => p.CategoryId == category.Value);
 
-            // Lá»c theo search
+            // Lọc theo search
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(p =>
                     p.Name.Contains(search) ||
                     (p.Description != null && p.Description.Contains(search)));
 
-            // Lá»c theo giÃ¡
+            // Lọc theo giá
             if (!string.IsNullOrEmpty(priceRange))
             {
                 query = priceRange switch
@@ -63,7 +63,7 @@ namespace TechShop.Controllers
                 };
             }
 
-            // Sáº¯p xáº¿p
+            // Sắp xếp
             query = sortOrder switch
             {
                 "price_asc" => query.OrderBy(p => p.DiscountPrice ?? p.Price),
@@ -72,7 +72,7 @@ namespace TechShop.Controllers
                 _ => query.OrderByDescending(p => p.CreatedAt)
             };
 
-            // PhÃ¢n trang
+            // Phân trang
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             if (totalPages < 1) totalPages = 1;
@@ -83,7 +83,7 @@ namespace TechShop.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Láº¥y categories tá»« DB cho sidebar
+            // Lấy categories từ DB cho sidebar
             var dbCategories = await _context.Categories
                 .OrderBy(c => c.Name)
                 .ToListAsync();
@@ -167,7 +167,7 @@ namespace TechShop.Controllers
 
             if (requiredGroupNames.Any() && selectedGroupNames.Count < requiredGroupNames.Count)
             {
-                TempData["Error"] = "Vui lÃ²ng chá»n Ä‘áº§y Ä‘á»§ biáº¿n thá»ƒ trÆ°á»›c khi thÃªm vÃ o giá» hÃ ng.";
+                TempData["Error"] = "Vui lòng chọn đầy đủ biến thể trước khi thêm vào giỏ hàng.";
                 return RedirectToAction(nameof(Detail), new { id = productId });
             }
 
@@ -190,7 +190,7 @@ namespace TechShop.Controllers
             {
                 decimal tradeInDiscount = (product.MaxTradeInValue ?? 0) * 0.3m;
                 finalPrice -= tradeInDiscount;
-                extraOptions += " [Thu cÅ© Ä‘á»•i má»›i]";
+                extraOptions += " [Thu cũ đổi mới]";
             }
 
             _cartService.AddToCart(HttpContext.Session, new CartItem
@@ -202,16 +202,16 @@ namespace TechShop.Controllers
                 ImageUrl = product.ImageUrl
             });
 
-            TempData["Success"] = $"ÄÃ£ thÃªm \"{product.Name}\" vÃ o giá» hÃ ng!";
+            TempData["Success"] = $"Đã thêm \"{product.Name}\" vào giỏ hàng!";
             return RedirectToAction("Index", "Cart");
         }
 
-        // ===== SO SÃNH =====
+        // ===== SO SÁNH =====
         [HttpPost]
         public async Task<IActionResult> AddToCompare(int productId)
         {
             var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId);
-            if (product == null) return Json(new { success = false, message = "Sáº£n pháº©m khÃ´ng tá»“n táº¡i." });
+            if (product == null) return Json(new { success = false, message = "Sản phẩm không tồn tại." });
 
             var compareListStr = HttpContext.Session.GetString("CompareList");
             var compareIds = string.IsNullOrEmpty(compareListStr)
@@ -219,21 +219,21 @@ namespace TechShop.Controllers
                 : JsonSerializer.Deserialize<List<int>>(compareListStr)!;
 
             if (compareIds.Contains(productId))
-                return Json(new { success = true, count = compareIds.Count, message = "Sáº£n pháº©m Ä‘Ã£ náº±m trong so sÃ¡nh." });
+                return Json(new { success = true, count = compareIds.Count, message = "Sản phẩm đã nằm trong so sánh." });
 
             if (compareIds.Count >= 4)
-                return Json(new { success = false, message = "Chá»‰ Ä‘Æ°á»£c so sÃ¡nh tá»‘i Ä‘a 4 sáº£n pháº©m." });
+                return Json(new { success = false, message = "Chỉ được so sánh tối đa 4 sản phẩm." });
 
             if (compareIds.Count == 1)
             {
                 var first = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == compareIds[0]);
                 if (first != null && first.CategoryId != product.CategoryId)
-                    return Json(new { success = false, message = "Chá»‰ so sÃ¡nh 2 sáº£n pháº©m cÃ¹ng danh má»¥c." });
+                    return Json(new { success = false, message = "Chỉ so sánh 2 sản phẩm cùng danh mục." });
             }
 
             compareIds.Add(productId);
             HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
-            return Json(new { success = true, count = compareIds.Count, message = "ÄÃ£ thÃªm vÃ o danh sÃ¡ch so sÃ¡nh." });
+            return Json(new { success = true, count = compareIds.Count, message = "Đã thêm vào danh sách so sánh." });
         }
 
         [HttpPost]
@@ -279,13 +279,13 @@ namespace TechShop.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-                return Json(new { success = false, message = "Vui lÃ²ng Ä‘Äƒng nháº­p!", redirectUrl = Url.Action("Login", "Account") });
+                return Json(new { success = false, message = "Vui lòng đăng nhập!", redirectUrl = Url.Action("Login", "Account") });
 
             var productExists = await _context.Products
                 .AnyAsync(p => p.Id == productId && p.IsActive);
 
             if (!productExists)
-                return Json(new { success = false, message = "Sáº£n pháº©m khÃ´ng tá»“n táº¡i hoáº·c Ä‘Ã£ bá»‹ áº©n." });
+                return Json(new { success = false, message = "Sản phẩm không tồn tại hoặc đã bị ẩn." });
 
             var existing = await _context.Wishlists
                 .FirstOrDefaultAsync(w => w.UserId == user.Id && w.ProductId == productId);
@@ -294,7 +294,7 @@ namespace TechShop.Controllers
             {
                 _context.Wishlists.Remove(existing);
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, isAdded = false, message = "ÄÃ£ bá» yÃªu thÃ­ch." });
+                return Json(new { success = true, isAdded = false, message = "Đã bỏ yêu thích." });
             }
 
             _context.Wishlists.Add(new Wishlist
@@ -306,11 +306,11 @@ namespace TechShop.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, isAdded = true, message = "ÄÃ£ thÃªm vÃ o má»¥c yÃªu thÃ­ch." });
+                return Json(new { success = true, isAdded = true, message = "Đã thêm vào mục yêu thích." });
             }
             catch (DbUpdateException)
             {
-                return Json(new { success = false, message = "KhÃ´ng thá»ƒ thÃªm vÃ o yÃªu thÃ­ch. Dá»¯ liá»‡u sáº£n pháº©m khÃ´ng há»£p lá»‡." });
+                return Json(new { success = false, message = "Không thể thêm vào yêu thích. Dữ liệu sản phẩm không hợp lệ." });
             }
         }
 
@@ -342,9 +342,9 @@ namespace TechShop.Controllers
                 .Include(p => p.Category)
                 .FirstOrDefaultAsync(p => p.Id == otherId);
             if (current == null || other == null)
-                return Content("<div class='alert alert-danger'>KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m.</div>", "text/html");
+                return Content("<div class='alert alert-danger'>Không tìm thấy sản phẩm.</div>", "text/html");
             if (current.CategoryId != other.CategoryId)
-                return Content("<div class='alert alert-warning'>Chá»‰ so sÃ¡nh 2 sáº£n pháº©m cÃ¹ng danh má»¥c.</div>", "text/html");
+                return Content("<div class='alert alert-warning'>Chỉ so sánh 2 sản phẩm cùng danh mục.</div>", "text/html");
             var allSpecs = current.Specifications.Select(s => s.SpecName)
                 .Union(other.Specifications.Select(s => s.SpecName))
                 .Distinct()
@@ -367,7 +367,7 @@ namespace TechShop.Controllers
                 .Select(p => new {
                     id = p.Id,
                     name = p.Name,
-                    price = p.Price.ToString("N0") + " â‚«",
+                    price = p.Price.ToString("N0") + " ₫",
                     image = p.ImageUrl ?? "https://via.placeholder.com/50",
                     categoryId = p.CategoryId
                 })
@@ -380,7 +380,7 @@ namespace TechShop.Controllers
         public async Task<IActionResult> AddToCompareAjax(int productId)
         {
             var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == productId);
-            if (product == null) return Json(new { success = false, message = "Sáº£n pháº©m khÃ´ng tá»“n táº¡i." });
+            if (product == null) return Json(new { success = false, message = "Sản phẩm không tồn tại." });
 
             var compareListStr = HttpContext.Session.GetString("CompareList");
             var compareIds = string.IsNullOrEmpty(compareListStr)
@@ -388,22 +388,22 @@ namespace TechShop.Controllers
                 : JsonSerializer.Deserialize<List<int>>(compareListStr)!;
 
             if (compareIds.Contains(productId))
-                return Json(new { success = false, message = "Sáº£n pháº©m Ä‘Ã£ cÃ³ trong danh sÃ¡ch so sÃ¡nh." });
+                return Json(new { success = false, message = "Sản phẩm đã có trong danh sách so sánh." });
 
             if (compareIds.Count >= 4)
-                return Json(new { success = false, message = "Chá»‰ Ä‘Æ°á»£c so sÃ¡nh tá»‘i Ä‘a 4 sáº£n pháº©m." });
+                return Json(new { success = false, message = "Chỉ được so sánh tối đa 4 sản phẩm." });
 
             if (compareIds.Count > 0)
             {
                 var firstId = compareIds[0];
                 var first = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == firstId);
                 if (first != null && first.CategoryId != product.CategoryId)
-                    return Json(new { success = false, message = "Chá»‰ Ä‘Æ°á»£c so sÃ¡nh cÃ¡c sáº£n pháº©m cÃ¹ng danh má»¥c." });
+                    return Json(new { success = false, message = "Chỉ được so sánh các sản phẩm cùng danh mục." });
             }
 
             compareIds.Add(productId);
             HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
-            return Json(new { success = true, count = compareIds.Count, message = "ÄÃ£ thÃªm vÃ o so sÃ¡nh." });
+            return Json(new { success = true, count = compareIds.Count, message = "Đã thêm vào so sánh." });
         }
     }
 }

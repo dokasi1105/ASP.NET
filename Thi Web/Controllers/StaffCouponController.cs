@@ -6,7 +6,7 @@ using TechShop.Models;
 
 namespace TechShop.Controllers
 {
-    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Authorize(Roles = "Staff,Employee,Nh�n vi�n")]
     [Route("Staff/Coupon/{action=Index}")]
     public class StaffCouponController : Controller
     {
@@ -39,7 +39,7 @@ namespace TechShop.Controllers
             _context.Coupons.Add(model);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "ÄÃ£ táº¡o mÃ£ giáº£m giÃ¡.";
+            TempData["Success"] = "Đã tạo mã giảm giá.";
             return RedirectToAction(nameof(Index));
         }
     }
