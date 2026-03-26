@@ -549,7 +549,7 @@ namespace Thi_Web.Migrations
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Laptop gaming cao cấp Intel Core i9-14900HX, RTX 4070 8GB, RAM 16GB DDR5, SSD 1TB PCIe 4.0, màn hình 16 inch QHD 165Hz",
                             DiscountPrice = 42990000m,
-                            ImageUrl = "https://dlcdnwebimgs.asus.com/gain/9BCCE5B8-9B6F-4857-B1B9-04FF37DAD6E1/w1000/h732",
+                            ImageUrl = "https://d28jzcg6y4v9j1.cloudfront.net/media/core/products/2024/1/10/asus-rog-strix-scar-g16-2024-undefined.jpg",
                             IsActive = true,
                             IsTradeInEligible = false,
                             Name = "ASUS ROG Strix G16 2024",
@@ -563,7 +563,7 @@ namespace Thi_Web.Migrations
                             CategoryId = 1,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Laptop văn phòng cao cấp Intel Core i7-13700H, RTX 4060 8GB, màn hình OLED 3.5K 60Hz, RAM 16GB, SSD 512GB, pin 86Whr",
-                            ImageUrl = "https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dell-client-products/notebooks/xps-notebooks/xps-15-9530/media-gallery/black/notebook-xps-15-9530-nt-black-gallery-1.psd?fmt=png-alpha&pscan=auto&scl=1&hei=402&wid=402&qlt=100,1&resMode=sharp2&size=402,402&chrss=full",
+                            ImageUrl = "",
                             IsActive = true,
                             IsTradeInEligible = false,
                             Name = "Dell XPS 15 9530",
@@ -577,7 +577,7 @@ namespace Thi_Web.Migrations
                             CategoryId = 1,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Laptop Apple chip M3 Pro 11 nhân, màn hình Liquid Retina XDR 14.2 inch, RAM 18GB, SSD 512GB, pin 18 giờ, MagSafe 3",
-                            ImageUrl = "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mbp14-spaceblack-select-202310?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1697230830200",
+                            ImageUrl = "https://nhatminhlaptop.com/upload/products/2023-03-23-13-45-56/9530-1.jpg",
                             IsActive = true,
                             IsTradeInEligible = false,
                             Name = "MacBook Pro M3 Pro 14 inch",
@@ -2155,11 +2155,22 @@ namespace Thi_Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("ProductVariantGroups");
                 });
@@ -2172,7 +2183,16 @@ namespace Thi_Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ColorHex")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ProductVariantGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
                     b.Property<string>("Value")
@@ -2184,6 +2204,29 @@ namespace Thi_Web.Migrations
                     b.HasIndex("ProductVariantGroupId");
 
                     b.ToTable("ProductVariantOptions");
+                });
+
+            modelBuilder.Entity("TechShop.Models.ProductVariantSelection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductVariantOptionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductVariantOptionId");
+
+                    b.ToTable("ProductVariantSelections");
                 });
 
             modelBuilder.Entity("TechShop.Models.ProductVariantValue", b =>
@@ -2541,6 +2584,17 @@ namespace Thi_Web.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("TechShop.Models.ProductVariantGroup", b =>
+                {
+                    b.HasOne("TechShop.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("TechShop.Models.ProductVariantOption", b =>
                 {
                     b.HasOne("TechShop.Models.ProductVariantGroup", "ProductVariantGroup")
@@ -2550,6 +2604,25 @@ namespace Thi_Web.Migrations
                         .IsRequired();
 
                     b.Navigation("ProductVariantGroup");
+                });
+
+            modelBuilder.Entity("TechShop.Models.ProductVariantSelection", b =>
+                {
+                    b.HasOne("TechShop.Models.Product", "Product")
+                        .WithMany("SelectedVariantOptions")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TechShop.Models.ProductVariantOption", "ProductVariantOption")
+                        .WithMany()
+                        .HasForeignKey("ProductVariantOptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ProductVariantOption");
                 });
 
             modelBuilder.Entity("TechShop.Models.ProductVariantValue", b =>
@@ -2661,6 +2734,8 @@ namespace Thi_Web.Migrations
                     b.Navigation("Inventories");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("SelectedVariantOptions");
 
                     b.Navigation("Specifications");
 
