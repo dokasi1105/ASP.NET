@@ -9,7 +9,7 @@
         <h4 class="text-primary fw-bold"><i class="bi bi-tags me-2"></i>Quản lý danh mục</h4>
         <p class="text-muted mb-0 small">Tổng cộng: <strong class="text-primary">@Model.Count</strong> danh mục sản phẩm</p>
     </div>
-    <a asp-controller="AdminCategory" asp-action="Create" class="btn btn-primary px-4 shadow-sm">
+    <a asp-controller="StaffCategory" asp-action="Create" class="btn btn-primary px-4 shadow-sm">
         <i class="bi bi-plus-lg me-2"></i>Thêm danh mục mới
     </a>
 </div>
@@ -41,11 +41,11 @@
                     </td>
                     <td>
                         <div class="admin-actions">
-                            <a asp-controller="AdminCategory" asp-action="Edit" asp-route-id="@cat.Id" 
+                            <a asp-controller="StaffCategory" asp-action="Edit" asp-route-id="@cat.Id" 
                                class="btn-admin-action edit shadow-sm" title="Sửa">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <form asp-controller="AdminCategory" asp-action="Delete" method="post" class="d-inline" 
+                            <form asp-controller="StaffCategory" asp-action="Delete" method="post" class="d-inline" 
                                   onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này? Điều này có thể ảnh hưởng đến các sản phẩm thuộc danh mục.')">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@cat.Id" />

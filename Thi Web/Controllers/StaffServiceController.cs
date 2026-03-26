@@ -5,13 +5,13 @@ using TechShop.Data;
 
 namespace TechShop.Controllers
 {
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Service/{action=Index}")]
-    public class AdminServiceController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Service/{action=Index}")]
+    public class StaffServiceController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public AdminServiceController(ApplicationDbContext context)
+        public StaffServiceController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -19,7 +19,7 @@ namespace TechShop.Controllers
         public async Task<IActionResult> Index()
         {
             var tickets = await _context.ServiceTickets.OrderByDescending(t => t.BookingDate).ToListAsync();
-            return View("~/Views/Admin/Service/Index.cshtml", tickets);
+            return View("~/Views/Staff/Service/Index.cshtml", tickets);
         }
 
         [HttpPost]

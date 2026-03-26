@@ -1,4 +1,4 @@
-@{
+﻿@{
     var path = Context.Request.Path.Value ?? string.Empty;
 
     bool IsActive(params string[] prefixes)
@@ -15,10 +15,11 @@
     }
 
     var isAdmin = User.IsInRole("Admin");
-    var isStaff = User.IsInRole("Staff");
+    var isStaff = User.IsInRole("Staff") || User.IsInRole("Employee") || User.IsInRole("Nhân viên");
     var displayName = User.Identity?.Name?.Split('@')[0] ?? "User";
     var roleLabel = isAdmin ? "Admin" : isStaff ? "Staff" : "User";
     var roleBadgeClass = isAdmin ? "bg-danger" : isStaff ? "bg-warning text-dark" : "bg-secondary";
+    var ctrlPrefix = isAdmin ? "Admin" : "Staff";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -48,55 +49,48 @@
             <nav class="sidebar-nav">
                 @if (isAdmin || isStaff)
                 {
-                    <div class="nav-section-label">Sản phẩm</div>
+                    <div class="nav-section-label">HỆ THỐNG</div>
+                    <a asp-controller="@(ctrlPrefix + "Dashboard")" asp-action="Index"
+                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("Dashboard") ? "active" : "")">
+                        <i class="bi bi-speedometer2"></i><span>Tổng quan</span>
+                    </a>
 
-                    @if (isAdmin)
-                    {
-                        <a asp-controller="AdminDashboard" asp-action="Index"
-                           class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminDashboard") ? "active" : "")">
-                            <i class="bi bi-speedometer2"></i><span>Dashboard</span>
-                        </a>
+                    <div class="nav-section-label">CỬA HÀNG</div>
+                    <a asp-controller="@(ctrlPrefix + "Product")" asp-action="Index"
+                       class="sidebar-link @(IsActive("/" + ctrlPrefix + "Product", "/Admin/AdminProduct", "/Staff/StaffProduct") ? "active" : "")">
+                        <i class="bi bi-box"></i><span>Sản phẩm</span>
+                    </a>
+                    <a asp-controller="@(ctrlPrefix + "Category")" asp-action="Index"
+                       class="sidebar-link @(IsActive("/" + ctrlPrefix + "Category", "/Admin/AdminCategory", "/Staff/StaffCategory") ? "active" : "")">
+                        <i class="bi bi-tags"></i><span>Danh mục</span>
+                    </a>
+                    <a asp-controller="@(ctrlPrefix + "Variant")" asp-action="Index"
+                       class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("Variant") ? "active" : "")">
+                        <i class="bi bi-layers"></i><span>Biến thể</span>
+                    </a>
 
-                        <a asp-controller="AdminProduct" asp-action="Index"
-                           class="sidebar-link @(IsActive("/AdminProduct", "/Admin/AdminProduct") ? "active" : "")">
-                            <i class="bi bi-box"></i><span>Sản phẩm</span>
-                        </a>
-                        <a asp-controller="AdminVariant" asp-action="Index"
-                           class="sidebar-link @(Context.Request.Path.Value != null && Context.Request.Path.Value.Contains("AdminVariant") ? "active" : "")">
-                            <i class="bi bi-diagram-3"></i><span>Biến thể sản phẩm</span>
-                        </a>
-                        <a asp-controller="AdminCategory" asp-action="Index"
-                           class="sidebar-link @(IsActive("/AdminCategory", "/Admin/AdminCategory") ? "active" : "")">
-                            <i class="bi bi-tags"></i><span>Danh mục</span>
-                        </a>
-                    }
-
-                    <div class="nav-section-label">Bán hàng</div>
-
-                    <a asp-controller="AdminOrder" asp-action="Index"
-                       class="sidebar-link @(IsActive("/AdminOrder", "/Admin/AdminOrder") ? "active" : "")">
+                    <div class="nav-section-label">NGHIỆP VỤ</div>
+                    <a asp-controller="@(ctrlPrefix + "Order")" asp-action="Index"
+                       class="sidebar-link @(IsActive("/" + ctrlPrefix + "Order", "/Admin/AdminOrder", "/Staff/StaffOrder") ? "active" : "")">
                         <i class="bi bi-receipt"></i><span>Đơn hàng</span>
                     </a>
-
-                    <a asp-controller="AdminService" asp-action="Index"
-                       class="sidebar-link @(IsActive("/AdminService", "/Admin/AdminService") ? "active" : "")">
-                        <i class="bi bi-wrench-adjustable"></i><span>Phiếu dịch vụ</span>
+                    <a asp-controller="@(ctrlPrefix + "Service")" asp-action="Index"
+                       class="sidebar-link @(IsActive("/" + ctrlPrefix + "Service", "/Admin/AdminService", "/Staff/StaffService") ? "active" : "")">
+                        <i class="bi bi-wrench-adjustable"></i><span>Dịch vụ</span>
+                    </a>
+                    <a asp-controller="@(ctrlPrefix + "Coupon")" asp-action="Index"
+                       class="sidebar-link @(IsActive("/" + ctrlPrefix + "Coupon", "/Admin/AdminCoupon", "/Staff/StaffCoupon") ? "active" : "")">
+                        <i class="bi bi-ticket-perforated"></i><span>Mã giảm giá</span>
                     </a>
 
-                    <div class="nav-section-label">Hệ thống</div>
-
-                    <a asp-controller="AdminSupport" asp-action="Index"
-                       class="sidebar-link @(IsActive("/AdminSupport", "/Admin/AdminSupport") ? "active" : "")">
-                        <i class="bi bi-chat-dots"></i><span>Chat hỗ trợ</span>
+                    <div class="nav-section-label">TÀI KHOẢN</div>
+                    <a asp-controller="@(ctrlPrefix + "Support")" asp-action="Index"
+                       class="sidebar-link @(IsActive("/" + ctrlPrefix + "Support", "/Admin/AdminSupport", "/Staff/StaffSupport") ? "active" : "")">
+                        <i class="bi bi-chat-dots"></i><span>Hỗ trợ chat</span>
                     </a>
 
                     @if (isAdmin)
                     {
-                        <a asp-controller="AdminCoupon" asp-action="Index"
-                           class="sidebar-link @(IsActive("/AdminCoupon", "/Admin/AdminCoupon") ? "active" : "")">
-                            <i class="bi bi-ticket-perforated"></i><span>Mã giảm giá</span>
-                        </a>
-
                         <a asp-controller="AdminUser" asp-action="Index"
                            class="sidebar-link @(IsActive("/AdminUser", "/Admin/AdminUser") ? "active" : "")">
                             <i class="bi bi-people"></i><span>Người dùng</span>
@@ -109,7 +103,7 @@
                     }
                 }
 
-                <div class="nav-section-label">Điều hướng</div>
+                <div class="nav-section-label">ĐIỀU HƯỚNG</div>
 
                 <a asp-controller="Home" asp-action="Index" class="sidebar-link">
                     <i class="bi bi-shop"></i><span>Về trang chủ</span>

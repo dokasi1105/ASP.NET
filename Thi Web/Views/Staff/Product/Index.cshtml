@@ -11,7 +11,7 @@
         <h4 class="text-primary fw-bold"><i class="bi bi-box-seam me-2"></i>Quản lý sản phẩm</h4>
         <p class="text-muted mb-0 small">Tổng cộng: <strong class="text-primary">@Model.Count</strong> sản phẩm</p>
     </div>
-    <a asp-controller="AdminProduct" asp-action="Create" class="btn btn-primary px-4 shadow-sm">
+    <a asp-controller="StaffProduct" asp-action="Create" class="btn btn-primary px-4 shadow-sm">
         <i class="bi bi-plus-lg me-2"></i>Thêm sản phẩm mới
     </a>
 </div>
@@ -82,11 +82,11 @@
                     </td>
                     <td>
                         <div class="admin-actions">
-                            <a asp-controller="AdminProduct" asp-action="Edit" asp-route-id="@p.Id" 
+                            <a asp-controller="StaffProduct" asp-action="Edit" asp-route-id="@p.Id" 
                                class="btn-admin-action edit shadow-sm" title="Sửa">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <form asp-controller="AdminProduct" asp-action="Delete" method="post" class="d-inline" 
+                            <form asp-controller="StaffProduct" asp-action="Delete" method="post" class="d-inline" 
                                   onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@p.Id" />

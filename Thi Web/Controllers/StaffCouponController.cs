@@ -6,13 +6,13 @@ using TechShop.Models;
 
 namespace TechShop.Controllers
 {
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Coupon/{action=Index}")]
-    public class AdminCouponController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Coupon/{action=Index}")]
+    public class StaffCouponController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public AdminCouponController(ApplicationDbContext context)
+        public StaffCouponController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -20,20 +20,20 @@ namespace TechShop.Controllers
         public async Task<IActionResult> Index()
         {
             var coupons = await _context.Coupons.OrderByDescending(x => x.Id).ToListAsync();
-            return View("~/Views/Admin/Coupon/Index.cshtml", coupons);
+            return View("~/Views/Staff/Coupon/Index.cshtml", coupons);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            return View("~/Views/Admin/Coupon/Create.cshtml", new Coupon());
+            return View("~/Views/Staff/Coupon/Create.cshtml", new Coupon());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Coupon model)
         {
-            if (!ModelState.IsValid) return View("~/Views/Admin/Coupon/Create.cshtml", model);
+            if (!ModelState.IsValid) return View("~/Views/Staff/Coupon/Create.cshtml", model);
 
             model.Code = model.Code.Trim().ToUpperInvariant();
             _context.Coupons.Add(model);

@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @inject UserManager<TechShop.Models.ApplicationUser> UserManager
 <!DOCTYPE html>
 <html lang="vi">
@@ -82,7 +82,8 @@
                             <i class="bi bi-controller me-1"></i>Minigame
                         </a>
                     </li>
-                    @if (User.IsInRole("Admin"))
+                    @{ var ctrlPrefix = User.IsInRole("Admin") ? "Admin" : "Staff"; }
+                    @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("Employee") || User.IsInRole("Nhân viên"))
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -90,27 +91,39 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark">
                                 <li>
-                                    <a class="dropdown-item" asp-controller="AdminProduct" asp-action="Index">
+                                    <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Dashboard")" asp-action="Index">
+                                        <i class="bi bi-speedometer2 me-2"></i>Bảng điều khiển
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Product")" asp-action="Index">
                                         <i class="bi bi-box me-2"></i>Sản phẩm
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="AdminCategory" asp-action="Index">
-                                        <i class="bi bi-tags me-2"></i>Danh mục
+                                    <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Variant")" asp-action="Index">
+                                        <i class="bi bi-layers me-2"></i>Biến thể sản phẩm
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="AdminOrder" asp-action="Index">
+                                    <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Category")" asp-action="Index">
+                                        <i class="bi bi-tags me-2"></i>Danh mục
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Order")" asp-action="Index">
                                         <i class="bi bi-receipt me-2"></i>Đơn hàng
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="AdminService" asp-action="Index">
-                                        <i class="bi bi-tools me-2"></i>Phiếu dịch vụ
+                                    <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Service")" asp-action="Index">
+                                        <i class="bi bi-wrench-adjustable me-2"></i>Phiếu dịch vụ
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" asp-controller="AdminCoupon" asp-action="Index">
+                                        <a class="dropdown-item" asp-controller="@(ctrlPrefix + "Coupon")" asp-action="Index">
                                             <i class="bi bi-ticket-perforated me-2"></i>Mã giảm giá
                                         </a>
                                     </li>

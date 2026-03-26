@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +11,12 @@ namespace TechShop.Controllers
     // ================================================================
     // ADMIN PRODUCT CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Product/{action=Index}")]
-    public class AdminProductController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Product/{action=Index}")]
+    public class StaffProductController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public AdminProductController(ApplicationDbContext context) => _context = context;
+        public StaffProductController(ApplicationDbContext context) => _context = context;
 
         public async Task<IActionResult> Index(int? categoryId)
         {
@@ -32,7 +32,7 @@ namespace TechShop.Controllers
                 .ToListAsync();
 
             ViewBag.SelectedCategory = categoryId;
-            return View("~/Views/Admin/Product/Index.cshtml", products);
+            return View("~/Views/Staff/Product/Index.cshtml", products);
         }
 
         [HttpGet]
@@ -45,7 +45,7 @@ namespace TechShop.Controllers
                 .OrderBy(g => g.SortOrder)
                 .ToListAsync();
 
-            return View("~/Views/Admin/Product/Create.cshtml", new Product());
+            return View("~/Views/Staff/Product/Create.cshtml", new Product());
         }
 
         [HttpPost]
@@ -79,7 +79,7 @@ namespace TechShop.Controllers
                 .OrderBy(g => g.SortOrder)
                 .ToListAsync();
 
-            return View("~/Views/Admin/Product/Create.cshtml", model);
+            return View("~/Views/Staff/Product/Create.cshtml", model);
         }
 
         [HttpGet]
@@ -102,7 +102,7 @@ namespace TechShop.Controllers
                 .Select(x => x.ProductVariantOptionId)
                 .ToList();
 
-            return View("~/Views/Admin/Product/Edit.cshtml", product);
+            return View("~/Views/Staff/Product/Edit.cshtml", product);
         }
 
         [HttpPost]
@@ -146,7 +146,7 @@ namespace TechShop.Controllers
 
             ViewBag.SelectedOptionIds = selectedOptionIds;
 
-            return View("~/Views/Admin/Product/Edit.cshtml", model);
+            return View("~/Views/Staff/Product/Edit.cshtml", model);
         }
 
         [HttpPost]
@@ -216,22 +216,22 @@ namespace TechShop.Controllers
     // ================================================================
     // ADMIN CATEGORY CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Category/{action=Index}")]
-    public class AdminCategoryController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Category/{action=Index}")]
+    public class StaffCategoryController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public AdminCategoryController(ApplicationDbContext context) => _context = context;
+        public StaffCategoryController(ApplicationDbContext context) => _context = context;
 
         public async Task<IActionResult> Index()
         {
             var categories = await _context.Categories.Include(c => c.Products).ToListAsync();
-            return View("~/Views/Admin/Category/Index.cshtml", categories);
+            return View("~/Views/Staff/Category/Index.cshtml", categories);
         }
 
         [HttpGet]
         public IActionResult Create()
-            => View("~/Views/Admin/Category/Create.cshtml", new Category());
+            => View("~/Views/Staff/Category/Create.cshtml", new Category());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -245,7 +245,7 @@ namespace TechShop.Controllers
                 TempData["Success"] = "ThÃªm danh má»¥c thÃ nh cÃ´ng!";
                 return RedirectToAction(nameof(Index));
             }
-            return View("~/Views/Admin/Category/Create.cshtml", model);
+            return View("~/Views/Staff/Category/Create.cshtml", model);
         }
 
         [HttpGet]
@@ -253,7 +253,7 @@ namespace TechShop.Controllers
         {
             Category? category = await _context.Categories.FindAsync(id);
             if (category == null) return NotFound();
-            return View("~/Views/Admin/Category/Edit.cshtml", category);
+            return View("~/Views/Staff/Category/Edit.cshtml", category);
         }
 
         [HttpPost]
@@ -269,7 +269,7 @@ namespace TechShop.Controllers
                 TempData["Success"] = "Cáº­p nháº­t danh má»¥c thÃ nh cÃ´ng!";
                 return RedirectToAction(nameof(Index));
             }
-            return View("~/Views/Admin/Category/Edit.cshtml", model);
+            return View("~/Views/Staff/Category/Edit.cshtml", model);
         }
 
         [HttpPost]
@@ -286,12 +286,12 @@ namespace TechShop.Controllers
     // ================================================================
     // ADMIN ORDER CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Order/{action=Index}")]
-    public class AdminOrderController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Order/{action=Index}")]
+    public class StaffOrderController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public AdminOrderController(ApplicationDbContext context) => _context = context;
+        public StaffOrderController(ApplicationDbContext context) => _context = context;
 
         public async Task<IActionResult> Index()
         {
@@ -299,7 +299,7 @@ namespace TechShop.Controllers
                 .Include(o => o.User)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
-            return View("~/Views/Admin/Order/Index.cshtml", orders);
+            return View("~/Views/Staff/Order/Index.cshtml", orders);
         }
 
         public async Task<IActionResult> Detail(int id)
@@ -310,7 +310,7 @@ namespace TechShop.Controllers
                     .ThenInclude(od => od.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
             if (order == null) return NotFound();
-            return View("~/Views/Admin/Order/Detail.cshtml", order);
+            return View("~/Views/Staff/Order/Detail.cshtml", order);
         }
 
         private int CalculateEarnedPoints(decimal totalAmount)
@@ -380,142 +380,21 @@ namespace TechShop.Controllers
             {
                 order.Status = "Processing"; // Hoáº·c "Paid" tÃ¹y báº¡n Ä‘áº·t tÃªn
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "ÄÃ£ xÃ¡c nháº­n thanh toÃ¡n POS thÃ nh cÃ´ng!";
+                TempData["Success"] = "Ä Ã£ xÃ¡c nháº­n thanh toÃ¡n POS thÃ nh cÃ´ng!";
             }
             return RedirectToAction("Detail", new { id = orderId });
-        }
-    }
-
-    // ================================================================
-    // ADMIN USER CONTROLLER
-    // ================================================================
-    [Authorize(Roles = "Admin")]
-    [Route("Admin/User/{action=Index}")]
-    public class AdminUserController : Controller
-    {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-
-        public AdminUserController(
-            UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager)
-        {
-            _userManager = userManager;
-            _roleManager = roleManager;
-        }
-
-        public async Task<IActionResult> Index()
-        {
-            var users = _userManager.Users.ToList();
-            var userRoles = new Dictionary<string, IList<string>>();
-            foreach (var user in users)
-                userRoles[user.Id] = await _userManager.GetRolesAsync(user);
-            ViewBag.UserRoles = userRoles;
-            return View("~/Views/Admin/User/Index.cshtml", users);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(string id)
-        {
-            ApplicationUser? user = await _userManager.FindByIdAsync(id);
-            if (user != null) await _userManager.DeleteAsync(user);
-            TempData["Success"] = "ÄÃ£ xÃ³a ngÆ°á»i dÃ¹ng.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AssignRole(string userId)
-        {
-            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return NotFound();
-            ViewBag.User = user;
-            ViewBag.AllRoles = _roleManager.Roles.ToList();
-            ViewBag.UserRoles = await _userManager.GetRolesAsync(user);
-            return View("~/Views/Admin/User/AssignRole.cshtml");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignRole(string userId, string roleName, bool assign)
-        {
-            ApplicationUser? user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
-            {
-                bool isInRole = await _userManager.IsInRoleAsync(user, roleName);
-                if (assign && !isInRole)
-                    await _userManager.AddToRoleAsync(user, roleName);
-                else if (!assign && isInRole)
-                    await _userManager.RemoveFromRoleAsync(user, roleName);
-            }
-            TempData["Success"] = "Cáº­p nháº­t quyá»n thÃ nh cÃ´ng!";
-            return RedirectToAction(nameof(AssignRole), new { userId });
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken] // ThÃªm báº£o máº­t chá»‘ng CSRF
-        public async Task<IActionResult> UpdateLoyalty(string userId, int points, string tier)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
-            {
-                user.LoyaltyPoints = points;
-                user.MembershipTier = tier;
-                await _userManager.UpdateAsync(user);
-                TempData["Success"] = $"ÄÃ£ cáº­p nháº­t thÃ nh viÃªn {user.UserName} thÃ nh tháº» {tier} vá»›i {points} Ä‘iá»ƒm.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
-    }
-
-    // ================================================================
-    // ADMIN ROLE CONTROLLER
-    // ================================================================
-    [Authorize(Roles = "Admin")]
-    [Route("Admin/Role/{action=Index}")]
-    public class AdminRoleController : Controller
-    {
-        private readonly RoleManager<IdentityRole> _roleManager;
-        public AdminRoleController(RoleManager<IdentityRole> roleManager) => _roleManager = roleManager;
-
-        public IActionResult Index()
-            => View("~/Views/Admin/Roles/Index.cshtml", _roleManager.Roles.ToList());
-
-        [HttpGet]
-        public IActionResult Create()
-            => View("~/Views/Admin/Roles/Create.cshtml");
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string roleName)
-        {
-            if (!string.IsNullOrWhiteSpace(roleName) && !await _roleManager.RoleExistsAsync(roleName))
-            {
-                await _roleManager.CreateAsync(new IdentityRole(roleName.Trim()));
-                TempData["Success"] = "Táº¡o role thÃ nh cÃ´ng!";
-            }
-            return RedirectToAction(nameof(Index));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(string id)
-        {
-            IdentityRole? role = await _roleManager.FindByIdAsync(id);
-            if (role != null) await _roleManager.DeleteAsync(role);
-            TempData["Success"] = "ÄÃ£ xÃ³a role.";
-            return RedirectToAction(nameof(Index));
         }
     }
     // ================================================================
     // ADMIN DASHBOARD CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Dashboard/{action=Index}")]
-    public class AdminDashboardController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Dashboard/{action=Index}")]
+    public class StaffDashboardController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public AdminDashboardController(ApplicationDbContext context)
+        public StaffDashboardController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -558,20 +437,20 @@ namespace TechShop.Controllers
                 SalesRatio = salesRatio
             };
 
-            return View("~/Views/Admin/Dashboard/Index.cshtml", vm);
+            return View("~/Views/Staff/Dashboard/Index.cshtml", vm);
         }
     }
 
     // ================================================================
     // ADMIN VARIANT CONTROLLER
     // ================================================================
-    [Authorize(Roles = "Admin,Staff,Employee,NhÃ¢n viÃªn")]
-    [Route("Admin/Variant/{action=Index}")]
-    public class AdminVariantController : Controller
+    [Authorize(Roles = "Staff,Employee,Nhân viên")]
+    [Route("Staff/Variant/{action=Index}")]
+    public class StaffVariantController : Controller
     {
         private readonly ApplicationDbContext _context;
 
-        public AdminVariantController(ApplicationDbContext context)
+        public StaffVariantController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -585,14 +464,14 @@ namespace TechShop.Controllers
                 .ThenBy(g => g.SortOrder)
                 .ToListAsync();
 
-            return View("~/Views/Admin/Variant/Index.cshtml", groups);
+            return View("~/Views/Staff/Variant/Index.cshtml", groups);
         }
 
         [HttpGet]
         public async Task<IActionResult> Create()
         {
             ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-            return View("~/Views/Admin/Variant/Create.cshtml", new AdminVariantCatalogViewModel());
+            return View("~/Views/Staff/Variant/Create.cshtml", new AdminVariantCatalogViewModel());
         }
 
         [HttpPost]
@@ -602,7 +481,7 @@ namespace TechShop.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.Categories = await _context.Categories.OrderBy(c => c.Name).ToListAsync();
-                return View("~/Views/Admin/Variant/Create.cshtml", model);
+                return View("~/Views/Staff/Variant/Create.cshtml", model);
             }
 
             await UpsertGroupAsync(model.CategoryId, "MÃ u Sáº¯c", model.Colors, 1);
@@ -680,13 +559,13 @@ namespace TechShop.Controllers
             };
         }
     }
-    //[Authorize(Roles = "Admin")]
-    //[Route("Admin/Variant/{action=Index}")]
-    //public class AdminVariantController : Controller
+    //[Authorize(Roles = "Staff,Employee,Nhân viên")]
+    //[Route("Staff/Variant/{action=Index}")]
+    //public class StaffVariantController : Controller
     //{
     //    private readonly ApplicationDbContext _context;
 
-    //    public AdminVariantController(ApplicationDbContext context)
+    //    public StaffVariantController(ApplicationDbContext context)
     //    {
     //        _context = context;
     //    }
@@ -701,7 +580,7 @@ namespace TechShop.Controllers
     //            .OrderByDescending(v => v.Id)
     //            .ToListAsync();
 
-    //        return View("~/Views/Admin/Variant/Index.cshtml", variants);
+    //        return View("~/Views/Staff/Variant/Index.cshtml", variants);
     //    }
 
     //    [HttpGet]
@@ -717,7 +596,7 @@ namespace TechShop.Controllers
 
     //        ViewBag.OptionCategoryMap = await BuildOptionCategoryMapAsync();
 
-    //        return View("~/Views/Admin/Variant/Create.cshtml", new ProductVariant());
+    //        return View("~/Views/Staff/Variant/Create.cshtml", new ProductVariant());
     //    }
 
     //    [HttpPost]
@@ -737,7 +616,7 @@ namespace TechShop.Controllers
     //            ViewBag.Products = await _context.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
     //            ViewBag.Options = await _context.ProductVariantOptions.Include(o => o.ProductVariantGroup).ToListAsync();
     //            ViewBag.OptionCategoryMap = await BuildOptionCategoryMapAsync();
-    //            return View("~/Views/Admin/Variant/Create.cshtml", model);
+    //            return View("~/Views/Staff/Variant/Create.cshtml", model);
     //        }
 
     //        var duplicateGroupIds = await _context.ProductVariantOptions
@@ -753,7 +632,7 @@ namespace TechShop.Controllers
     //            ViewBag.Products = await _context.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
     //            ViewBag.Options = await _context.ProductVariantOptions.Include(o => o.ProductVariantGroup).ToListAsync();
     //            ViewBag.OptionCategoryMap = await BuildOptionCategoryMapAsync();
-    //            return View("~/Views/Admin/Variant/Create.cshtml", model);
+    //            return View("~/Views/Staff/Variant/Create.cshtml", model);
     //        }
 
     //        model.Values = selectedOptionIds.Select(x => new ProductVariantValue
