@@ -2,6 +2,84 @@
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Thiết lập biến thể";
+    var categories = ViewBag.Categories as List<TechShop.Models.Category> ?? new();
+}
+
+<div class="admin-page-header">
+    <div>
+        <h4 class="text-primary fw-bold">
+            <i class="bi bi-sliders me-2"></i>Thiết lập bộ biến thể
+        </h4>
+        <p class="text-muted mb-0 small">
+            Tạo nhanh các nhóm biến thể cho từng danh mục như màu sắc, dung lượng, nâng cấp.
+        </p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách
+    </a>
+</div>
+
+<form asp-action="Create" method="post" class="admin-form-card shadow-sm">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <label asp-for="CategoryId" class="form-label fw-bold"></label>
+            <select asp-for="CategoryId" class="form-select">
+                <option value="">-- Chọn danh mục --</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label asp-for="Colors" class="form-label fw-bold"></label>
+                    <input asp-for="Colors" class="form-control" placeholder="Đen/Trắng/Xanh/Đỏ" />
+                    <div class="form-text">Nhập các giá trị cách nhau bằng dấu /</div>
+                    <span asp-validation-for="Colors" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Capacities" class="form-label fw-bold"></label>
+                    <input asp-for="Capacities" class="form-control" placeholder="256GB/512GB/1TB/2TB" />
+                    <div class="form-text">Nhập các giá trị cách nhau bằng dấu /</div>
+                    <span asp-validation-for="Capacities" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Upgrades" class="form-label fw-bold"></label>
+                    <input asp-for="Upgrades" class="form-control" placeholder="Standard/Plus/Pro/Pro Max" />
+                    <div class="form-text">Nhập các giá trị cách nhau bằng dấu /</div>
+                    <span asp-validation-for="Upgrades" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check2-circle me-2"></i>Lưu bộ biến thể
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+@* @model TechShop.ViewModels.Admin.AdminVariantCatalogViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Thiết lập biến thể";
     var categories = ViewBag.Categories as List<TechShop.Models.Category>;
 }
 
@@ -46,96 +124,4 @@
         </div>
     </form>
 </div>
-
-@* @model TechShop.Models.ProductVariant
-@{
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Thêm biến thể";
-    var products = ViewBag.Products as List<TechShop.Models.Product>;
-    var options = ViewBag.Options as List<TechShop.Models.ProductVariantOption>;
-    var optionCategoryMap = ViewBag.OptionCategoryMap as Dictionary<int, List<int>> ?? new();
-}
-
-<div class="container-fluid py-4">
-    <h2 class="mb-4">Thêm biến thể</h2>
-
-    <form asp-action="Create" method="post" class="card shadow-sm">
-        <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label">Sản phẩm</label>
-                <select asp-for="ProductId" class="form-select">
-                    <option value="">-- Chọn sản phẩm --</option>
-                    @foreach (var p in products ?? new())
-                    {
-                        <option value="@p.Id" data-category-id="@p.CategoryId">@p.Name</option>
-                    }
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Sku" class="form-label"></label>
-                <input asp-for="Sku" class="form-control" />
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Price" class="form-label"></label>
-                <input asp-for="Price" class="form-control" />
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Stock" class="form-label"></label>
-                <input asp-for="Stock" class="form-control" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Thuộc tính biến thể</label>
-                <div class="row">
-                    @foreach (var o in options ?? new())
-                    {
-                        var categoryIds = optionCategoryMap.TryGetValue(o.Id, out var ids) ? ids : new List<int>();
-                        <div class="col-md-4 mb-2">
-                            <label class="form-check option-item" data-category-ids="@string.Join(",", categoryIds)">
-                                <input type="checkbox" name="selectedOptionIds" value="@o.Id" class="form-check-input" />
-                                <span class="form-check-label">
-                                    @o.ProductVariantGroup?.Name: @o.Value
-                                </span>
-                            </label>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Lưu</button>
-        </div>
-    </form>
-</div>
-
-@section Scripts {
-    <script>
-        (function () {
-            const productSelect = document.querySelector('select[name="ProductId"]');
-            if (!productSelect) return;
-
-            function filterOptionsByCategory() {
-                const selected = productSelect.options[productSelect.selectedIndex];
-                const categoryId = selected?.dataset?.categoryId;
-                const optionItems = document.querySelectorAll('.option-item');
-
-                optionItems.forEach(item => {
-                    const allowedIds = (item.getAttribute('data-category-ids') || '')
-                        .split(',')
-                        .map(x => x.trim())
-                        .filter(Boolean);
-                    const checkbox = item.querySelector('input[type="checkbox"]');
-                    const isAllowed = !categoryId || allowedIds.length === 0 || allowedIds.includes(categoryId);
-
-                    item.style.display = isAllowed ? '' : 'none';
-                    if (!isAllowed && checkbox) checkbox.checked = false;
-                });
-            }
-
-            productSelect.addEventListener('change', filterOptionsByCategory);
-            filterOptionsByCategory();
-        })();
-    </script>
-} *@
+ *@
