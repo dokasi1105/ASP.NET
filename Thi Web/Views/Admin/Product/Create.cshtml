@@ -72,7 +72,7 @@
 
                     if (block.dataset.categoryId !== categoryId) {
                         block.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-                        block.querySelectorAll('label.btn').forEach(lb => lb.classList.remove('btn-primary'));
+                        block.querySelectorAll('label.btn').forEach(lb => lb.classList.remove('btn-primary-variant'));
                     }
                 });
             }
@@ -81,7 +81,7 @@
                 label.addEventListener('click', function () {
                     setTimeout(() => {
                         const cb = label.querySelector('input[type="checkbox"]');
-                        label.classList.toggle('btn-primary', cb.checked);
+                        label.classList.toggle('btn-primary-variant', cb.checked);
                     }, 0);
                 });
             });
