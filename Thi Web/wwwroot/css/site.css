@@ -462,7 +462,6 @@ body {
     border-color: var(--primary);
     color: #ffffff;
     box-shadow: 0 10px 30px var(--primary-glow);
-    filter: brightness(4);
 }
 
 .btn-primary:hover {
