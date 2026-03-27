@@ -95,11 +95,6 @@ namespace TechShop.Controllers
             ViewBag.PriceRange = priceRange ?? "";
             ViewBag.Page = page;
             ViewBag.TotalPages = totalPages;
-            
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_ProductGrid", products);
-            }
 
             return View(products);
         }

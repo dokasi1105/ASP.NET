@@ -284,45 +284,6 @@
         font-weight: 800; text-decoration: none; transition: all 0.3s;
     }
     .btn-cyber-reset:hover { box-shadow: 0 0 20px var(--shop-primary); transform: translateY(-3px); }
-
-    /* SCANNER EFFECT */
-    .grid-container { position: relative; min-height: 400px; transition: all 0.3s ease; }
-    .grid-loading-blur { filter: blur(4px); opacity: 0.6; pointer-events: none; }
-    
-    .scanner-overlay {
-        position: absolute; inset: 0; z-index: 100;
-        display: none; pointer-events: none;
-        overflow: hidden; border-radius: 24px;
-    }
-    .grid-container.loading .scanner-overlay { display: block; }
-
-    .scanner-line {
-        position: absolute; top: 0; left: 0; right: 0; height: 2px;
-        background: linear-gradient(90deg, transparent, var(--shop-primary), transparent);
-        box-shadow: 0 0 15px var(--shop-primary), 0 0 30px var(--shop-primary);
-        animation: scan 2s linear infinite;
-        z-index: 101;
-    }
-
-    .scanner-gradient {
-        position: absolute; top: 0; left: 0; right: 0; height: 100px;
-        background: linear-gradient(to bottom, rgba(0, 242, 255, 0.1), transparent);
-        animation: scan-grad 2s linear infinite;
-    }
-
-    @@keyframes scan {
-        0% { top: -2%; }
-        100% { top: 102%; }
-    }
-    @@keyframes scan-grad {
-        0% { top: -10%; opacity: 0; }
-        50% { opacity: 1; }
-        100% { top: 100%; opacity: 0; }
-    }
-
-    /* Staggered Entry fix for AJAX */
-    .products-grid .pcard { opacity: 0; transform: translateY(20px); }
-    .products-grid .pcard.aos-animate { opacity: 1; transform: translateY(0); }
 </style>
 
 <div class="shop-header">
@@ -406,20 +367,18 @@
         </aside>
 
         <main>
-            <div class="shop-toolbar" data-aos="fade-down">
+            <div class="shop-toolbar">
                 <div class="toolbar-info">
-                    <div id="active-filters-tags" class="d-flex align-items-center gap-2">
-                        @if (activeCategory.HasValue) { <span class="toolbar-tag">@catLabel</span> }
-                        @if (!string.IsNullOrEmpty(currentSearch)) { <span class="toolbar-tag border-info">Search: @currentSearch</span> }
-                    </div>
-                    <span class="text-muted small ms-2">Lọc: <strong id="result-count">@Model.Count</strong> kết quả</span>
+                    @if (activeCategory.HasValue) { <span class="toolbar-tag">@catLabel</span> }
+                    @if (!string.IsNullOrEmpty(currentSearch)) { <span class="toolbar-tag border-info">Search: @currentSearch</span> }
+                    <span class="text-muted small ms-2">Lọc: <strong>@Model.Count</strong> kết quả</span>
                 </div>
 
-                <form id="filter-sort-form" asp-controller="Product" asp-action="Index" method="get" class="d-flex align-items-center gap-2">
-                    <input type="hidden" name="category" id="hidden-category" value="@activeCategory" />
-                    <input type="hidden" name="search" id="hidden-search" value="@currentSearch" />
-                    <input type="hidden" name="priceRange" id="hidden-price" value="@currentPrice" />
-                    <select name="sortOrder" id="sort-select" class="sort-select">
+                <form asp-controller="Product" asp-action="Index" method="get" class="d-flex align-items-center gap-2">
+                    <input type="hidden" name="category" value="@activeCategory" />
+                    <input type="hidden" name="search" value="@currentSearch" />
+                    <input type="hidden" name="priceRange" value="@currentPrice" />
+                    <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
                         <option value="" selected="@(currentSort == "")">Ưu tiên mới nhất</option>
                         <option value="price_asc" selected="@(currentSort == "price_asc")">Giá thấp → cao</option>
                         <option value="price_desc" selected="@(currentSort == "price_desc")">Giá cao → thấp</option>
@@ -428,114 +387,103 @@
                 </form>
             </div>
 
-            <div id="product-grid-container" class="grid-container">
-                <div class="scanner-overlay">
-                    <div class="scanner-line"></div>
-                    <div class="scanner-gradient"></div>
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <i class="bi bi-robot empty-icon"></i>
+                    <h3>Hệ thống không tìm thấy sản phẩm khả dụng</h3>
+                    <p class="text-muted mb-4">Vui lòng thử điều chỉnh tham số lọc hoặc đổi từ khóa tìm kiếm của bạn.</p>
+                    <a asp-action="Index" class="btn-cyber-reset">
+                        <i class="bi bi-arrow-repeat"></i> Khởi động lại quét
+                    </a>
                 </div>
-                <div id="grid-content">
-                    @await Html.PartialAsync("_ProductGrid", Model)
+            }
+            else
+            {
+                <div class="products-grid">
+                    @foreach (var item in Model)
+                    {
+                        var rng = new Random(item.Id);
+                        decimal rating = Math.Round((decimal)(rng.NextDouble() * 1.0 + 4.0), 1);
+                        int fs = (int)Math.Floor(rating);
+                        bool hh = (rating - fs) >= 0.5m;
+                        int es = 5 - fs - (hh ? 1 : 0);
+
+                        <div class="pcard">
+                            <button type="button" class="wishlist-btn" onclick="toggleWishlist(@item.Id, this)" title="Thêm vào danh sách theo dõi">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                            <div class="pcard-img-wrap">
+                                <img src="@(item.ImageUrl ?? "https://via.placeholder.com/300")" alt="@item.Name" class="pcard-img" loading="lazy" />
+                                <div class="pcard-overlay">
+                                    <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="pcard-overlay-btn">
+                                        CHI TIẾT
+                                    </a>
+                                </div>
+                                @if (item.Stock == 0) { <span class="pcard-badge out">Hết linh kiện</span> }
+                                else if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
+                                {
+                                    var pt = (int)Math.Round((1 - item.DiscountPrice.Value / item.Price) * 100);
+                                    <span class="pcard-badge sale">-@pt% PROMO</span>
+                                }
+                            </div>
+                            <div class="pcard-body">
+                                <p class="pcard-brand">@item.Category?.Name</p>
+                                <h6 class="pcard-name">@item.Name</h6>
+                                <div class="pcard-stars">
+                                    @for (int i = 0; i < fs; i++) { <i class="bi bi-star-fill"></i> }
+                                    @if (hh) { <i class="bi bi-star-half"></i> }
+                                    @for (int i = 0; i < es; i++) { <i class="bi bi-star" style="opacity:0.2"></i> }
+                                    <span class="star-count">@rating.ToString("N1") Signal</span>
+                                </div>
+                                <div class="pcard-footer">
+                                    <div class="pcard-price-wrap">
+                                        <span class="pcard-price">@((item.DiscountPrice ?? item.Price).ToString("N0")) ₫</span>
+                                        @if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
+                                        {
+                                            <span class="pcard-price-old">@item.Price.ToString("N0") ₫</span>
+                                        }
+                                    </div>
+                                    @if (item.Stock > 0)
+                                    {
+                                        <form asp-controller="Product" asp-action="AddToCart" method="post" class="m-0">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.Id" />
+                                            <button type="submit" class="btn-cart" title="Trình nạp giỏ hàng">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-cart" disabled title="Thiếu linh kiện"><i class="bi bi-slash-circle"></i></button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
-            </div>
+
+                @if (totalPages > 1)
+                {
+                    <div class="pagination-wrap">
+                        @if (currentPage > 1)
+                        {
+                            <a asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-category="@activeCategory" asp-route-search="@currentSearch" asp-route-priceRange="@currentPrice" asp-route-sortOrder="@currentSort" class="page-btn"><i class="bi bi-chevron-left"></i></a>
+                        }
+
+                        @for (int n = Math.Max(1, currentPage - 2); n <= Math.Min(totalPages, currentPage + 2); n++)
+                        {
+                            <a asp-action="Index" asp-route-page="@n" asp-route-category="@activeCategory" asp-route-search="@currentSearch" asp-route-priceRange="@currentPrice" asp-route-sortOrder="@currentSort" class="page-btn @(n == currentPage ? "active" : "")">@n</a>
+                        }
+
+                        @if (currentPage < totalPages)
+                        {
+                            <a asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-category="@activeCategory" asp-route-search="@currentSearch" asp-route-priceRange="@currentPrice" asp-route-sortOrder="@currentSort" class="page-btn"><i class="bi bi-chevron-right"></i></a>
+                        }
+                    </div>
+                }
+            }
         </main>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function() {
-            const $gridContainer = $('#product-grid-container');
-            const $gridContent = $('#grid-content');
-            const $sortSelect = $('#sort-select');
-
-            function updateFilters() {
-                const category = $('#hidden-category').val();
-                const search = $('#hidden-search').val();
-                const price = $('#hidden-price').val();
-                const sort = $sortSelect.val();
-                
-                const url = new URL(window.location.href);
-                if (category) url.searchParams.set('category', category); else url.searchParams.delete('category');
-                if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
-                if (price) url.searchParams.set('priceRange', price); else url.searchParams.delete('priceRange');
-                if (sort) url.searchParams.set('sortOrder', sort); else url.searchParams.delete('sortOrder');
-                url.searchParams.delete('page'); // Reset to page 1
-
-                loadProducts(url.toString());
-            }
-
-            function loadProducts(url) {
-                $gridContainer.addClass('loading');
-                $gridContent.addClass('grid-loading-blur');
-
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function(html) {
-                        // Smoothly transition content
-                        $gridContent.fadeOut(200, function() {
-                            $(this).html(html).fadeIn(200);
-                            $gridContainer.removeClass('loading');
-                            $(this).removeClass('grid-loading-blur');
-                            
-                            // Re-init AOS for new elements
-                            AOS.init({
-                                duration: 800,
-                                offset: 50, 
-                                once: true,
-                                easing: 'ease-out-cubic'
-                            });
-                            AOS.refresh();
-                            
-                            // Scroll to top of grid
-                            $('html, body').animate({
-                                scrollTop: $(".shop-header").offset().top + 200
-                            }, 500);
-
-                            // Update Result Count
-                            const count = $(html).find('.pcard').length || 0;
-                            $('#result-count').text(count);
-                            
-                            // Sync URL
-                            window.history.pushState({ path: url }, '', url);
-                        });
-                    },
-                    error: function() {
-                        $gridContainer.removeClass('loading');
-                        $gridContent.removeClass('grid-loading-blur');
-                        alert('Hệ thống gặp sự cố khi quét dữ liệu. Vui lòng thử lại!');
-                    }
-                });
-            }
-
-            // Intercept Filter Links
-            $(document).on('click', '.filter-nav-item, .ajax-page-link', function(e) {
-                e.preventDefault();
-                const url = $(this).attr('href');
-                if (url && url !== '#') {
-                    // Update Active UI
-                    if ($(this).hasClass('filter-nav-item')) {
-                        $(this).closest('ul').find('.filter-nav-item').removeClass('active');
-                        $(this).addClass('active');
-                    }
-                    loadProducts(url);
-                }
-            });
-
-            // Intercept Sort Change
-            $sortSelect.on('change', function() {
-                updateFilters();
-            });
-
-            // Handle browser back/forward
-            window.onpopstate = function(e) {
-                if(e.state && e.state.path) {
-                    loadProducts(e.state.path);
-                } else {
-                    window.location.reload();
-                }
-            };
-        });
-    </script>
-}
