@@ -1,0 +1,119 @@
+@model List<TechShop.Models.Product>
+@{
+    int currentPage = ViewBag.Page is int p ? p : 1;
+    int totalPages = ViewBag.TotalPages is int tp ? tp : 1;
+    int? activeCategory = ViewBag.Category as int?;
+    string currentSearch = ViewBag.Search as string ?? "";
+    string currentSort = ViewBag.SortOrder as string ?? "";
+    string currentPrice = ViewBag.PriceRange as string ?? "";
+
+    var catIcons = new Dictionary<string, string>
+    {
+        { "Laptop", "bi-laptop" }, { "Chuột", "bi-mouse" }, { "Bàn phím", "bi-keyboard" },
+        { "Màn hình", "bi-display" }, { "Linh kiện PC", "bi-cpu" }, { "Tai nghe", "bi-headphones" },
+        { "Ổ cứng", "bi-hdd" }, { "Ghế gaming", "bi-person-workspace" }
+    };
+}
+
+<div class="products-grid">
+    @if (!Model.Any())
+    {
+        <div class="empty-state w-100">
+            <i class="bi bi-robot empty-icon"></i>
+            <h3>Hệ thống không tìm thấy sản phẩm khả dụng</h3>
+            <p class="text-muted mb-4">Vui lòng thử điều chỉnh tham số lọc hoặc đổi từ khóa tìm kiếm của bạn.</p>
+            <a asp-action="Index" class="btn-cyber-reset">
+                <i class="bi bi-arrow-repeat"></i> Khởi động lại quét
+            </a>
+        </div>
+    }
+    else
+    {
+        int index = 0;
+        @foreach (var item in Model)
+        {
+            var rng = new Random(item.Id);
+            decimal rating = Math.Round((decimal)(rng.NextDouble() * 1.0 + 4.0), 1);
+            int fs = (int)Math.Floor(rating);
+            bool hh = (rating - fs) >= 0.5m;
+            int es = 5 - fs - (hh ? 1 : 0);
+            
+            // Staggered delay for AOS
+            int delay = (index % 12) * 50;
+            index++;
+
+            <div class="pcard" data-aos="fade-up" data-aos-delay="@delay">
+                <button type="button" class="wishlist-btn @(false ? "active" : "")" onclick="toggleWishlist(@item.Id, this)" title="Thêm vào danh sách theo dõi">
+                    <i class="bi bi-heart"></i>
+                </button>
+                <div class="pcard-img-wrap">
+                    <img src="@(item.ImageUrl ?? "https://via.placeholder.com/300")" alt="@item.Name" class="pcard-img" loading="lazy" />
+                    <div class="pcard-overlay">
+                        <a asp-controller="Product" asp-action="Detail" asp-route-id="@item.Id" class="pcard-overlay-btn">
+                            CHI TIẾT
+                        </a>
+                    </div>
+                    @if (item.Stock == 0) { <span class="pcard-badge out">Hết linh kiện</span> }
+                    else if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
+                    {
+                        var pt = (int)Math.Round((1 - item.DiscountPrice.Value / item.Price) * 100);
+                        <span class="pcard-badge sale">-@pt% PROMO</span>
+                    }
+                </div>
+                <div class="pcard-body">
+                    <p class="pcard-brand">@item.Category?.Name</p>
+                    <h6 class="pcard-name">@item.Name</h6>
+                    <div class="pcard-stars">
+                        @for (int i = 0; i < fs; i++) { <i class="bi bi-star-fill"></i> }
+                        @if (hh) { <i class="bi bi-star-half"></i> }
+                        @for (int i = 0; i < es; i++) { <i class="bi bi-star" style="opacity:0.2"></i> }
+                        <span class="star-count">@rating.ToString("N1") Signal</span>
+                    </div>
+                    <div class="pcard-footer">
+                        <div class="pcard-price-wrap">
+                            <span class="pcard-price">@((item.DiscountPrice ?? item.Price).ToString("N0")) ₫</span>
+                            @if (item.DiscountPrice.HasValue && item.DiscountPrice < item.Price)
+                            {
+                                <span class="pcard-price-old">@item.Price.ToString("N0") ₫</span>
+                            }
+                        </div>
+                        @if (item.Stock > 0)
+                        {
+                            <form asp-controller="Product" asp-action="AddToCart" method="post" class="m-0">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@item.Id" />
+                                <button type="submit" class="btn-cart" title="Trình nạp giỏ hàng">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn-cart" disabled title="Thiếu linh kiện"><i class="bi bi-slash-circle"></i></button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@if (totalPages > 1)
+{
+    <div class="pagination-wrap" data-aos="fade-up">
+        @if (currentPage > 1)
+        {
+            <a href="@Url.Action("Index", new { page = currentPage - 1, category = activeCategory, search = currentSearch, priceRange = currentPrice, sortOrder = currentSort })" class="page-btn ajax-page-link"><i class="bi bi-chevron-left"></i></a>
+        }
+
+        @for (int n = Math.Max(1, currentPage - 2); n <= Math.Min(totalPages, currentPage + 2); n++)
+        {
+            <a href="@Url.Action("Index", new { page = n, category = activeCategory, search = currentSearch, priceRange = currentPrice, sortOrder = currentSort })" class="page-btn ajax-page-link @(n == currentPage ? "active" : "")">@n</a>
+        }
+
+        @if (currentPage < totalPages)
+        {
+            <a href="@Url.Action("Index", new { page = currentPage + 1, category = activeCategory, search = currentSearch, priceRange = currentPrice, sortOrder = currentSort })" class="page-btn ajax-page-link"><i class="bi bi-chevron-right"></i></a>
+        }
+    </div>
+}
