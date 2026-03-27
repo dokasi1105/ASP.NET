@@ -6,6 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
 
 /* ---- CSS Variables ---- */
+/* Khai bao bien mau, bo goc, bong do va thong so mac dinh cho giao dien sang */
 :root {
     color-scheme: light;
     --bg-dark: #f5f8ff;
@@ -38,6 +39,7 @@
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Ghi de bien mau va mau chu khi website o che do toi */
 [data-theme="dark"] {
     color-scheme: dark;
     --bg-dark: #050510;
@@ -67,7 +69,7 @@
     --footer-bg: var(--bg-dark-2);
 }
 
-/* Keep Bootstrap utility text readable in dark mode */
+/* Sua mau cac class Bootstrap de doc duoc tren nen toi */
 [data-theme="dark"] .text-dark,
 [data-theme="dark"] .text-black,
 [data-theme="dark"] .text-body,
@@ -106,7 +108,7 @@
     color: var(--text-muted);
 }
 
-/* ---- Reset & Base ---- */
+/* Reset padding, margin va tinh kich thuoc dong nhat cho moi phan tu */
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -116,7 +118,7 @@
 html {
     scroll-behavior: smooth;
 }
-
+/* Cai dat font, mau nen, mau chu va bo cuc tong cho trang */
 body {
     font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     background: var(--bg-dark);
@@ -128,28 +130,26 @@ body {
     flex-direction: column;
 }
 
+/* Khu vuc noi dung chinh; day noi dung len va tao khoang cach voi footer hoac navbar */
 .main-content {
     flex: 1;
 }
-
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Manrope', sans-serif;
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.02em;
 }
-
 a {
     color: var(--primary-light);
     text-decoration: none;
     transition: var(--transition);
 }
+a:hover {
+    color: var(--accent);
+}
 
-    a:hover {
-        color: var(--accent);
-    }
-
-/* ---- Smooth Theme Transition ---- */
+/* Cai dat font, mau nen, mau chu va bo cuc tong cho trang */
 body {
     transition: background-color 0.5s ease, color 0.5s ease;
 }
@@ -157,13 +157,13 @@ body {
     transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Fix footer stretching */
+/* Dinh dang footer chung cua trang */
 .site-footer {
     padding: 60px 0 30px;
     margin-top: 0;
 }
 
-/* ---- Page Preloader ---- */
+/* Lop loading full man hinh truoc khi trang tai xong */
 #preloader {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -177,14 +177,14 @@ body {
 .loader-content {
     text-align: center;
 }
-
+/* Dinh dang icon/logo trong man hinh loading */
 .loader-logo {
     font-size: 3rem;
     color: var(--primary-light);
     margin-bottom: 20px;
     animation: pulseLogo 1.2s infinite ease-in-out;
 }
-
+/* Thanh loading nam ngang trong preloader */
 .loader-line {
     width: 150px;
     height: 3px;
@@ -193,7 +193,7 @@ body {
     overflow: hidden;
     margin: 0 auto 15px;
 }
-
+/* Vet sang chay tren thanh loading */
 .loader-line::after {
     content: '';
     position: absolute;
@@ -222,12 +222,11 @@ body {
     100% { left: 100%; }
 }
 
-/* ---- Ripple Effect ---- */
+/* Dinh dang chung cho tat ca nut bam */
 .btn {
     position: relative;
     overflow: hidden;
 }
-
 .ripple {
     position: absolute;
     background: rgba(255, 255, 255, 0.4);
@@ -238,13 +237,12 @@ body {
     height: 0;
     animation: rippleEffect 0.6s linear;
 }
-
 @keyframes rippleEffect {
     from { width: 0; height: 0; opacity: 1; }
     to { width: 400px; height: 400px; opacity: 0; }
 }
 
-/* ---- Magic Cursor ---- */
+/* Con tro chuot tuy bien hien tren desktop */
 #magic-cursor {
     position: fixed;
     width: 25px;
@@ -258,25 +256,22 @@ body {
     transition: width 0.3s, height 0.3s, background 0.3s, border 0.3s;
     display: none; /* Hiện bằng JS trên desktop */
 }
-
+/* Quy tac chi ap dung tren man hinh desktop tro len */
 @media (min-width: 992px) {
     #magic-cursor { display: block; }
 }
-
 #magic-cursor.hover {
     width: 50px;
     height: 50px;
     background: rgba(var(--primary-rgb), 0.1);
     border-color: var(--accent);
 }
-
 #magic-cursor.active {
     width: 20px;
     height: 20px;
     background: var(--primary-light);
 }
-
-/* ---- Text Gradient ---- */
+/* Tao chu mau gradient */
 .text-gradient {
     background: linear-gradient(135deg, var(--primary-light), var(--accent));
     -webkit-background-clip: text;
@@ -287,6 +282,7 @@ body {
 /* ============================================
    NAVBAR
    ============================================ */
+/* Thanh dieu huong chinh o dau trang */
 #mainNav {
     background: var(--nav-bg);
     backdrop-filter: blur(16px);
@@ -296,12 +292,11 @@ body {
     transition: var(--transition);
     z-index: 1050;
 }
-
-    #mainNav.scrolled {
-        background: var(--nav-bg-scrolled);
-        box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-    }
-
+/* Giao dien navbar sau khi cuon trang */
+#mainNav.scrolled {
+    background: var(--nav-bg-scrolled);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
 .navbar-brand {
     font-family: 'Manrope', sans-serif;
     font-size: 1.4rem;
@@ -309,11 +304,10 @@ body {
     color: var(--text-primary) !important;
     letter-spacing: -0.5px;
 }
-
-    .navbar-brand i {
-        color: var(--primary-light);
-    }
-
+.navbar-brand i {
+    color: var(--primary-light);
+}
+/* Dinh dang tung link tren navbar */
 .nav-link {
     color: var(--text-secondary) !important;
     font-weight: 500;
@@ -322,12 +316,11 @@ body {
     border-radius: 8px;
     transition: var(--transition);
 }
-
-    .nav-link:hover {
-        color: var(--text-primary) !important;
-        background: var(--nav-link-hover-bg);
-    }
-
+.nav-link:hover {
+    color: var(--text-primary) !important;
+    background: var(--nav-link-hover-bg);
+}
+/* Khung menu dropdown */
 .dropdown-menu {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -335,7 +328,7 @@ body {
     box-shadow: var(--shadow-lg);
     padding: 8px;
 }
-
+/* Tung muc ben trong dropdown */
 .dropdown-item {
     color: var(--text-secondary);
     border-radius: 8px;
@@ -343,23 +336,19 @@ body {
     font-size: 0.88rem;
     transition: var(--transition);
 }
-
-    .dropdown-item:hover {
-        background: rgba(37,99,235,0.15);
-        color: var(--primary-light);
-    }
-
+.dropdown-item:hover {
+    background: rgba(37,99,235,0.15);
+    color: var(--primary-light);
+}
 .dropdown-divider {
     border-color: var(--border);
 }
-
-/* Search box */
+/* Khung bao input tim kiem tren navbar hoac dau trang */
 .search-box {
     position: relative;
     display: flex;
     align-items: center;
 }
-
 .search-input {
     background: var(--input-bg);
     border: 1px solid var(--border);
@@ -370,22 +359,20 @@ body {
     width: 200px;
     transition: var(--transition);
 }
-
-    .search-input:focus {
-        background: var(--input-hover-bg);
-        color: #111;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-glow);
-        outline: none;
-        width: 260px;
-    }
-
-    .search-input::placeholder,
-    .form-control::placeholder,
-    .form-select::placeholder {
-        color: var(--placeholder-color);
-    }
-
+    /* Trang thai o tim kiem khi dang duoc chon */
+.search-input:focus {
+    background: var(--input-hover-bg);
+    color: #111;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    outline: none;
+    width: 260px;
+}
+.search-input::placeholder,
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--placeholder-color);
+}
 .search-btn {
     position: absolute;
     right: 10px;
@@ -395,18 +382,17 @@ body {
     cursor: pointer;
     transition: var(--transition);
 }
+.search-btn:hover {
+    color: var(--primary-light);
+}
 
-    .search-btn:hover {
-        color: var(--primary-light);
-    }
-
-/* Cart icon */
+/* Icon gio hang tren navbar */
 .cart-icon {
     position: relative;
     font-size: 1.3rem;
     padding: 6px 10px !important;
 }
-
+/* So luong san pham hien tren icon gio hang */
 .cart-badge {
     position: absolute;
     top: 0;
@@ -423,7 +409,6 @@ body {
     justify-content: center;
     border: 2px solid var(--bg-dark);
 }
-
 .nav-avatar {
     width: 34px;
     height: 34px;
@@ -439,7 +424,6 @@ body {
     overflow: hidden;
     cursor: pointer;
 }
-
 .nav-avatar-img {
     width: 100%;
     height: 100%;
@@ -449,6 +433,7 @@ body {
 /* ============================================
    BUTTONS
    ============================================ */
+/* Dinh dang chung cho tat ca nut bam */
 .btn {
     font-family: "Be Vietnam Pro", sans-serif;
     font-weight: 600;
@@ -456,7 +441,7 @@ body {
     transition: var(--transition);
     letter-spacing: 0.01em;
 }
-
+/* Nut chinh cua he thong voi mau gradient xanh */
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-light));
     border-color: var(--primary);
@@ -470,70 +455,63 @@ body {
     box-shadow: 0 8px 20px var(--primary-glow);
     filter: brightness(4);
 }
-
 .btn-primary:hover {
     background: linear-gradient(135deg, var(--primary-light), var(--accent));
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(37,99,235,0.5);
     color: #fff;
 }
-
+/* Nut vien phu mau xam */
 .btn-outline-secondary {
     border-color: var(--border);
     color: var(--text-secondary);
     background: transparent;
 }
-
 .btn-outline-secondary:hover {
     background: rgba(255,255,255,0.06);
     border-color: var(--text-muted);
     color: var(--text-primary);
 }
-
+/* Nut vien xoa hoac canh bao */
 .btn-outline-danger {
     border-color: var(--danger);
     color: var(--danger);
 }
-
 .btn-outline-danger:hover {
     background: var(--danger);
     color: #fff;
 }
-
+/* Nut canh bao mau vang */
 .btn-warning {
     background: var(--warning);
     border: none;
     color: #000;
 }
-
 .btn-warning:hover {
     background: #fbbf24;
     transform: translateY(-1px);
     color: #000;
 }
-
+/* Nut hanh dong nguy hiem nhu xoa */
 .btn-danger {
     background: var(--danger);
     border: none;
     color: #fff;
 }
-
 .btn-danger:hover {
     background: #dc2626;
     transform: translateY(-1px);
 }
-
+/* Nut thanh cong mau xanh la */
 .btn-success {
     background: var(--success);
     border: none;
     color: #fff;
 }
-
 .btn-outline-light {
     border-color: rgba(255,255,255,0.3);
     color: rgba(255,255,255,0.85);
 }
-
 .btn-outline-light:hover {
     background: rgba(255,255,255,0.1);
     color: #fff;
@@ -543,38 +521,35 @@ body {
 /* ============================================
    FORMS
    ============================================ */
+/* Dinh dang chung cho o nhap va hop chon */
 .form-control, .form-select {
     background: var(--input-bg);
     border: 1px solid var(--border);
     color: var(--input-text);
     transition: var(--transition);
 }
-
-    .form-control:hover, .form-select:hover {
-        background: #fff;
-        color: #111;
-        border-color: #fff;
-    }
-
-        .form-control:hover::placeholder,
-        .form-select:hover::placeholder {
-            color: rgba(0,0,0,0.55);
-        }
-
-    .form-control:focus, .form-select:focus {
-        background: #fff;
-        color: #111;
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px var(--primary-glow);
-        outline: none;
-    }
-
-    .search-input::placeholder,
-    .form-control::placeholder,
-    .form-select::placeholder {
-        color: var(--placeholder-color);
-    }
-
+.form-control:hover, .form-select:hover {
+    background: #fff;
+    color: #111;
+    border-color: #fff;
+}
+.form-control:hover::placeholder,
+.form-select:hover::placeholder {
+    color: rgba(0,0,0,0.55);
+}
+/* Trang thai focus cho input va select */
+.form-control:focus, .form-select:focus {
+    background: #fff;
+    color: #111;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    outline: none;
+}
+.search-input::placeholder,
+.form-control::placeholder,
+.form-select::placeholder {
+    color: var(--placeholder-color);
+}
 .form-label {
     color: var(--text-secondary);
     font-size: 0.85rem;
@@ -583,50 +558,46 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-
+/* Mau nen va mau chu cho tung option trong select */
 .form-select option {
     background: var(--bg-card);
     color: var(--text-primary);
 }
-
 .form-check-input {
     background-color: transparent;
     border-color: var(--border);
 }
-
-    .form-check-input:checked {
-        background-color: var(--primary);
-        border-color: var(--primary);
-    }
-
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
 .input-group-text {
     background: rgba(255,255,255,0.05);
     border-color: var(--border);
     color: var(--text-muted);
 }
-
-/* Input with icon */
+/* Khung input co icon ben trong */
 .input-icon-wrap {
     position: relative;
 }
-
-    .input-icon-wrap i {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        pointer-events: none;
-        font-size: 0.95rem;
-    }
-
-    .input-icon-wrap .form-control {
-        padding-left: 40px;
-    }
+/* Vi tri icon trong input */
+.input-icon-wrap i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+    font-size: 0.95rem;
+}
+.input-icon-wrap .form-control {
+    padding-left: 40px;
+}
 
 /* ============================================
    HERO SECTION
    ============================================ */
+/* Khu vuc hero dau trang */
 .hero-section {
     position: relative;
     min-height: 100vh;
@@ -635,27 +606,25 @@ body {
     padding: 100px 0 60px;
     overflow: hidden;
 }
-
+/* Lop nen hieu ung phia sau hero */
 .hero-bg {
     position: absolute;
     inset: 0;
     background: radial-gradient(ellipse 80% 60% at 70% 40%, rgba(37,99,235,0.18) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 30% 70%, rgba(6,182,212,0.1) 0%, transparent 50%), var(--bg-dark);
     z-index: 0;
 }
-
-    .hero-bg::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(circle 1px at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
-        background-size: 40px 40px;
-    }
-
+.hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle 1px at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+    background-size: 40px 40px;
+}
 .hero-section .container {
     position: relative;
     z-index: 1;
 }
-
+/* Nhac nho nho o dau hero */
 .hero-badge {
     display: inline-block;
     background: rgba(37,99,235,0.15);
@@ -668,7 +637,6 @@ body {
     margin-bottom: 24px;
     animation: fadeInDown 0.6s ease;
 }
-
 .hero-title {
     font-family: 'Manrope', sans-serif;
     font-size: clamp(2.5rem, 5vw, 4rem);
@@ -677,7 +645,6 @@ body {
     margin-bottom: 20px;
     animation: fadeInUp 0.7s ease;
 }
-
 .hero-sub {
     font-size: 1.05rem;
     color: var(--text-secondary);
@@ -685,42 +652,35 @@ body {
     margin-bottom: 32px;
     animation: fadeInUp 0.8s ease;
 }
-
 .hero-actions {
     animation: fadeInUp 0.9s ease;
 }
-
 .hero-stats {
     display: flex;
     gap: 32px;
     animation: fadeInUp 1s ease;
 }
-
 .stat-item {
     display: flex;
     flex-direction: column;
 }
-
 .stat-num {
     font-family: 'Manrope', sans-serif;
     font-size: 1.6rem;
     font-weight: 800;
     color: var(--text-primary);
 }
-
 .stat-label {
     font-size: 0.78rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-
-/* Hero image */
+/* Khung chua anh hero */
 .hero-image-wrap {
     position: relative;
     animation: fadeInRight 0.9s ease;
 }
-
 .hero-img {
     width: 100%;
     max-width: 560px;
@@ -728,7 +688,7 @@ body {
     box-shadow: var(--shadow-lg), 0 0 80px rgba(37,99,235,0.2);
     border: 1px solid var(--border);
 }
-
+/* The noi trang tri xung quanh anh hero */
 .float-card {
     position: absolute;
     background: var(--bg-card);
@@ -743,19 +703,18 @@ body {
     gap: 8px;
     animation: float 3s ease-in-out infinite;
 }
-
+/* Vi tri the noi so 1 */
 .fc1 {
     bottom: 40px;
     left: -20px;
     animation-delay: 0s;
 }
-
+/* Vi tri the noi so 2 */
 .fc2 {
     top: 40px;
     right: -20px;
     animation-delay: 1.5s;
 }
-
 @keyframes float {
     0%, 100% {
         transform: translateY(0);
@@ -765,7 +724,6 @@ body {
         transform: translateY(-10px);
     }
 }
-
 .min-vh-75 {
     min-height: 75vh;
 }
@@ -773,13 +731,13 @@ body {
 /* ============================================
    SECTION TITLE
    ============================================ */
+/* Tieu de chung cho cac section */
 .section-title {
     font-family: 'Manrope', sans-serif;
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 700;
     margin-bottom: 32px;
 }
-
 .page-title {
     font-family: 'Manrope', sans-serif;
     font-size: 1.8rem;
@@ -789,6 +747,7 @@ body {
 /* ============================================
    BG DARK 2
    ============================================ */
+/* Lop nen phu dung bien mau thu hai */
 .bg-dark-2 {
     background: var(--bg-dark-2);
 }
@@ -796,6 +755,7 @@ body {
 /* ============================================
    CATEGORY CARDS
    ============================================ */
+/* The danh muc san pham */
 .cat-card {
     display: flex;
     flex-direction: column;
@@ -815,28 +775,26 @@ body {
     transition: var(--transition);
     cursor: pointer;
 }
-
-    .cat-card i {
-        font-size: 1.6rem;
-        color: var(--text-muted);
-        transition: var(--transition);
-    }
-
-    .cat-card:hover, .cat-card.active {
-        background: rgba(37,99,235,0.12);
-        border-color: var(--primary);
-        color: var(--primary-light);
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px var(--primary-glow);
-    }
-
-        .cat-card:hover i, .cat-card.active i {
-            color: var(--primary-light);
-        }
+.cat-card i {
+    font-size: 1.6rem;
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+.cat-card:hover, .cat-card.active {
+    background: rgba(37,99,235,0.12);
+    border-color: var(--primary);
+    color: var(--primary-light);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--primary-glow);
+}
+.cat-card:hover i, .cat-card.active i {
+    color: var(--primary-light);
+}
 
 /* ============================================
    PRODUCT CARDS
    ============================================ */
+/* The san pham chung */
 .product-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -848,6 +806,7 @@ body {
     flex-direction: column;
     position: relative;
 }
+/* Nut yeu thich nam tren anh san pham */
 .wishlist-btn {
     position: absolute;
     top: 12px;
@@ -865,33 +824,27 @@ body {
     transition: all .2s ease;
     cursor: pointer;
 }
-
 .wishlist-btn:hover {
     transform: translateY(-1px);
     background: #13203b;
     color: #fff;
 }
-
 .wishlist-btn.active {
     background: rgba(255, 77, 109, .12);
     border-color: rgba(255, 77, 109, .45);
     color: #ff4d6d;
 }
-
 .wishlist-btn.active i {
     color: #ff4d6d;
 }
-
 /* Trang shop .pcard */
 .pcard {
     position: relative;
 }
-
 /* Trang home .product-card */
 .product-card {
     position: relative;
 }
-
 /* style trang shop */
 .wishlist-btn-shop {
     top: 10px;
@@ -902,25 +855,21 @@ body {
     box-shadow: 0 12px 40px rgba(37,99,235,0.2);
     transform: translateY(-6px);
 }
-
 .product-img-wrap {
     position: relative;
     overflow: hidden;
     aspect-ratio: 4/3;
     background: var(--bg-dark-2);
 }
-
 .product-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.4s ease;
 }
-
 .product-card:hover .product-img {
     transform: scale(1.08);
 }
-
 .product-overlay {
     position: absolute;
     inset: 0;
@@ -931,11 +880,10 @@ body {
     opacity: 0;
     transition: var(--transition);
 }
-
 .product-card:hover .product-overlay {
     opacity: 1;
 }
-
+/* Nhan hien tinh trang ton kho */
 .badge-stock {
     position: absolute;
     top: 10px;
@@ -947,7 +895,6 @@ body {
     padding: 3px 10px;
     border-radius: 50px;
 }
-
 .product-body {
     padding: 16px;
     flex: 1;
@@ -955,7 +902,6 @@ body {
     flex-direction: column;
     gap: 6px;
 }
-
 .product-cat {
     font-size: 0.72rem;
     text-transform: uppercase;
@@ -964,7 +910,6 @@ body {
     font-weight: 700;
     margin: 0;
 }
-
 .product-name {
     font-size: 0.88rem;
     font-weight: 600;
@@ -978,14 +923,12 @@ body {
     overflow: hidden;
     margin: 0;
 }
-
 .product-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 8px;
 }
-
 .product-price {
     font-family: 'Manrope', sans-serif;
     font-weight: 700;
@@ -993,7 +936,7 @@ body {
     color: var(--primary-light);
     text-align: left;
 }
-
+/* Nut them san pham vao gio hang */
 .btn-add-cart {
     width: 36px;
     height: 36px;
@@ -1010,82 +953,76 @@ body {
     text-decoration: none;
     flex-shrink: 0;
 }
-
-    .btn-add-cart:hover {
-        background: linear-gradient(135deg, var(--primary-light), var(--accent));
-        transform: scale(1.1);
-        box-shadow: 0 4px 15px var(--primary-glow);
-        color: #fff;
-    }
+.btn-add-cart:hover {
+    background: linear-gradient(135deg, var(--primary-light), var(--accent));
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px var(--primary-glow);
+    color: #fff;
+}
 
 /* ============================================
    EMPTY STATE
    ============================================ */
+/* Man hinh trong khi khong co du lieu */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
     color: var(--text-muted);
 }
-
-    .empty-state i {
-        opacity: 0.3;
-    }
-
-    .empty-state h4 {
-        margin: 16px 0 8px;
-        color: var(--text-secondary);
-    }
+.empty-state i {
+    opacity: 0.3;
+}
+.empty-state h4 {
+    margin: 16px 0 8px;
+    color: var(--text-secondary);
+}
 
 /* ============================================
    FEATURES SECTION
    ============================================ */
+/* Khu vuc hien cac diem noi bat cua cua hang */
 .features-section {
     background: var(--bg-dark-2);
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     padding: 48px 0;
 }
-
 .feature-item {
     display: flex;
     align-items: center;
     gap: 16px;
 }
-
-    .feature-item i {
-        font-size: 2rem;
-        color: var(--primary-light);
-        flex-shrink: 0;
-    }
-
-    .feature-item strong {
-        display: block;
-        font-size: 0.9rem;
-        color: var(--text-primary);
-    }
-
-    .feature-item p {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        margin: 0;
-    }
+.feature-item i {
+    font-size: 2rem;
+    color: var(--primary-light);
+    flex-shrink: 0;
+}
+.feature-item strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+.feature-item p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
 
 /* ============================================
    PRODUCT DETAIL
    ============================================ */
+/* Khung anh lon trong trang chi tiet san pham */
 .detail-img-wrap {
     border-radius: var(--radius-lg);
     overflow: hidden;
     background: var(--bg-card);
     border: 1px solid var(--border);
 }
-
 .detail-img {
     width: 100%;
     object-fit: cover;
     max-height: 420px;
 }
-
 .badge-cat {
     background: rgba(37,99,235,0.15);
     color: var(--primary-light);
@@ -1094,33 +1031,29 @@ body {
     padding: 4px 14px;
     font-size: 0.8rem;
 }
-
 .detail-title {
     font-size: clamp(1.4rem, 3vw, 2rem);
     font-weight: 800;
     line-height: 1.2;
 }
-
 .detail-price {
     font-family: 'Manrope', sans-serif;
     font-size: 1.8rem;
     font-weight: 800;
     color: var(--primary-light);
 }
-
 .detail-desc {
     color: var(--text-secondary);
     line-height: 1.8;
     font-size: 0.95rem;
 }
-
 .detail-meta {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 16px;
 }
-
+/* Tung dong thong tin trong hop meta */
 .meta-row {
     display: flex;
     gap: 12px;
@@ -1128,17 +1061,15 @@ body {
     border-bottom: 1px solid var(--border);
     font-size: 0.88rem;
 }
-
-    .meta-row:last-child {
-        border-bottom: none;
-    }
-
+.meta-row:last-child {
+    border-bottom: none;
+}
 .meta-label {
     color: var(--text-muted);
     min-width: 120px;
     font-weight: 600;
 }
-
+/* Cum tang giam so luong */
 .qty-control {
     display: flex;
     align-items: center;
@@ -1147,46 +1078,41 @@ body {
     border-radius: 10px;
     overflow: hidden;
 }
-
-    .qty-control button {
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        width: 36px;
-        height: 36px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-        .qty-control button:hover {
-            background: rgba(255,255,255,0.08);
-            color: var(--primary-light);
-        }
-
-    .qty-control input {
-        width: 50px;
-        text-align: center;
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-weight: 700;
-        font-size: 1rem;
-        outline: none;
-    }
-
-    .qty-control.small button {
-        width: 28px;
-        height: 28px;
-        font-size: 0.9rem;
-    }
-
-    .qty-control.small input {
-        width: 40px;
-        font-size: 0.88rem;
-    }
-
+.qty-control button {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.qty-control button:hover {
+    background: rgba(255,255,255,0.08);
+    color: var(--primary-light);
+}
+.qty-control input {
+    width: 50px;
+    text-align: center;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    outline: none;
+}
+.qty-control.small button {
+    width: 28px;
+    height: 28px;
+    font-size: 0.9rem;
+}
+.qty-control.small input {
+    width: 40px;
+    font-size: 0.88rem;
+}
+/* Nhom cac nhan thong tin nhanh trong trang chi tiet */
 .detail-badges {
     display: flex;
     flex-wrap: wrap;
@@ -1194,23 +1120,22 @@ body {
     font-size: 0.82rem;
     color: var(--text-secondary);
 }
-
-    .detail-badges span {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
+.detail-badges span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
 
 /* ============================================
    CART
    ============================================ */
+/* Khung bang gio hang */
 .cart-table {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
 }
-
 .cart-header {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 40px;
@@ -1224,7 +1149,6 @@ body {
     color: var(--text-muted);
     border-bottom: 1px solid var(--border);
 }
-
 .cart-row {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr 40px;
@@ -1234,15 +1158,12 @@ body {
     border-bottom: 1px solid var(--border);
     transition: var(--transition);
 }
-
-    .cart-row:last-child {
-        border-bottom: none;
-    }
-
-    .cart-row:hover {
-        background: var(--bg-card-hover);
-    }
-
+.cart-row:last-child {
+    border-bottom: none;
+}
+.cart-row:hover {
+    background: var(--bg-card-hover);
+}
 .cart-product {
     display: flex;
     align-items: center;
@@ -1250,32 +1171,27 @@ body {
     font-size: 0.88rem;
     font-weight: 500;
 }
-
-    .cart-product img {
-        width: 56px;
-        height: 56px;
-        object-fit: cover;
-        border-radius: 10px;
-        border: 1px solid var(--border);
-    }
-
+.cart-product img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
 .cart-price {
     color: var(--text-secondary);
     font-size: 0.9rem;
 }
-
 .cart-sub {
     font-weight: 700;
     color: var(--primary-light);
     font-family: 'Manrope', sans-serif;
     font-size: 0.95rem;
 }
-
 .cart-qty-form {
     display: flex;
     align-items: center;
 }
-
 .btn-remove {
     background: none;
     border: none;
@@ -1286,13 +1202,11 @@ body {
     border-radius: 8px;
     transition: var(--transition);
 }
-
-    .btn-remove:hover {
-        color: var(--danger);
-        background: rgba(239,68,68,0.1);
-    }
-
-/* Order Summary Card */
+.btn-remove:hover {
+    color: var(--danger);
+    background: rgba(239,68,68,0.1);
+}
+/* Hop tong ket don hang o cot ben */
 .order-summary {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -1301,7 +1215,6 @@ body {
     position: sticky;
     top: 90px;
 }
-
 .summary-row {
     display: flex;
     justify-content: space-between;
@@ -1309,7 +1222,6 @@ body {
     color: var(--text-secondary);
     padding: 8px 0;
 }
-
 .summary-total {
     display: flex;
     justify-content: space-between;
@@ -1319,7 +1231,7 @@ body {
     color: var(--text-primary);
     padding: 8px 0;
 }
-
+/* Ghi chu bao mat hoac thanh toan an toan */
 .secure-badge {
     text-align: center;
     font-size: 0.8rem;
@@ -1329,19 +1241,20 @@ body {
 /* ============================================
    CHECKOUT
    ============================================ */
+/* Khung form checkout */
 .checkout-form-wrap {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 32px;
 }
-
+/* Khu vuc chua cac cach thanh toan */
 .payment-method {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
-
+/* Mot lua chon thanh toan */
 .pay-option {
     display: flex;
     align-items: center;
@@ -1355,26 +1268,22 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
 }
-
-    .pay-option input[type="radio"] {
-        display: none;
-    }
-
-    .pay-option i {
-        font-size: 1.2rem;
-        color: var(--text-muted);
-    }
-
-    .pay-option.active {
-        border-color: var(--primary);
-        background: rgba(37,99,235,0.08);
-        color: var(--primary-light);
-    }
-
-        .pay-option.active i {
-            color: var(--primary-light);
-        }
-
+.pay-option input[type="radio"] {
+    display: none;
+}
+.pay-option i {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+}
+.pay-option.active {
+    border-color: var(--primary);
+    background: rgba(37,99,235,0.08);
+    color: var(--primary-light);
+}
+.pay-option.active i {
+    color: var(--primary-light);
+}
+/* Tung san pham trong danh sach checkout */
 .checkout-item {
     display: flex;
     align-items: center;
@@ -1383,33 +1292,27 @@ body {
     border-bottom: 1px solid var(--border);
     font-size: 0.85rem;
 }
-
-    .checkout-item:last-child {
-        border-bottom: none;
-    }
-
-    .checkout-item img {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid var(--border);
-    }
-
+.checkout-item:last-child {
+    border-bottom: none;
+}
+.checkout-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
 .checkout-item-info {
     flex: 1;
 }
-
-    .checkout-item-info p {
-        margin: 0;
-        font-weight: 500;
-        line-height: 1.3;
-    }
-
-    .checkout-item-info small {
-        color: var(--text-muted);
-    }
-
+.checkout-item-info p {
+    margin: 0;
+    font-weight: 500;
+    line-height: 1.3;
+}
+.checkout-item-info small {
+    color: var(--text-muted);
+}
 .checkout-item > span {
     font-weight: 700;
     color: var(--primary-light);
@@ -1419,12 +1322,12 @@ body {
 /* ============================================
    ORDER COMPLETED
    ============================================ */
+/* Khung tong cua trang dat hang thanh cong */
 .success-wrap {
     max-width: 700px;
     margin: 0 auto;
     padding: 40px 0;
 }
-
 .success-icon {
     width: 100px;
     height: 100px;
@@ -1439,19 +1342,18 @@ body {
     color: var(--success);
     animation: scaleIn 0.5s ease;
 }
-
+/* Hieu ung phong to dan cho icon thanh cong */
 @keyframes scaleIn {
-    from {
-        transform: scale(0);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+from {
+    transform: scale(0);
+    opacity: 0;
 }
 
+to {
+    transform: scale(1);
+    opacity: 1;
+}
+}
 .order-info-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -1463,6 +1365,7 @@ body {
 /* ============================================
    AUTH PAGES
    ============================================ */
+/* Nen va bo cuc tong cho cac trang dang nhap dang ky */
 .auth-page {
     min-height: 100vh;
     display: flex;
@@ -1471,7 +1374,6 @@ body {
     padding: 80px 20px 40px;
     background: radial-gradient(ellipse 60% 50% at 50% 30%, rgba(37,99,235,0.12) 0%, transparent 60%), var(--bg-dark);
 }
-
 .auth-card {
     width: 100%;
     max-width: 440px;
@@ -1482,31 +1384,27 @@ body {
     box-shadow: var(--shadow-lg);
     animation: fadeInUp 0.5s ease;
 }
-
 .auth-header {
     text-align: center;
     margin-bottom: 32px;
 }
-
+/* Icon thuong hieu trong form xac thuc */
 .brand-icon {
     font-size: 2.5rem;
     color: var(--primary-light);
     margin-bottom: 12px;
     display: block;
 }
-
 .auth-header h2 {
     font-family: 'Manrope', sans-serif;
     font-size: 1.8rem;
     font-weight: 800;
     margin-bottom: 6px;
 }
-
 .auth-header p {
     color: var(--text-muted);
     font-size: 0.9rem;
 }
-
 .auth-hint {
     background: rgba(37,99,235,0.08);
     border: 1px solid rgba(37,99,235,0.2);
@@ -1518,19 +1416,18 @@ body {
 /* ============================================
    FOOTER
    ============================================ */
+/* Dinh dang footer chung cua trang */
 .site-footer {
     background: var(--footer-bg);
     border-top: 1px solid var(--border);
     padding: 60px 0 30px;
     margin-top: 80px;
 }
-
-    .site-footer h5, .site-footer h6 {
-        font-family: 'Manrope', sans-serif;
-        font-size: 1rem;
-        margin-bottom: 16px;
-    }
-
+.site-footer h5, .site-footer h6 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
 .theme-toggle-btn {
     border: 1px solid var(--border);
     background: var(--bg-card);
@@ -1545,52 +1442,46 @@ body {
     box-shadow: var(--shadow);
     transition: var(--transition);
 }
-
 .theme-toggle-btn:hover {
     color: var(--text-primary);
     border-color: var(--primary-light);
     transform: translateY(-1px);
 }
-
 .footer-links li {
     margin-bottom: 8px;
 }
-
 .footer-links a {
     color: var(--text-muted);
     font-size: 0.88rem;
     transition: var(--transition);
 }
-
-    .footer-links a:hover {
-        color: var(--primary-light);
-    }
-
+.footer-links a:hover {
+    color: var(--primary-light);
+}
+/* Nhom icon mang xa hoi o footer */
 .social-links {
     display: flex;
     gap: 12px;
     margin-top: 16px;
 }
-
-    .social-links a {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        transition: var(--transition);
-    }
-
-        .social-links a:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #fff;
-        }
+.social-links a {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+.social-links a:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
 
 /* ============================================
    MAIN CONTENT OFFSET
@@ -1602,22 +1493,20 @@ body {
 /* ============================================
    BADGES & MISC
    ============================================ */
+/* Dinh dang chung cho badge Bootstrap */
 .badge {
     font-weight: 600;
     letter-spacing: 0.02em;
 }
-
 .alert {
     border-radius: var(--radius);
     border: none;
 }
-
 .alert-success {
     background: rgba(16,185,129,0.12);
     border: 1px solid rgba(16,185,129,0.3);
     color: #6ee7b7;
 }
-
 .alert-danger {
     background: rgba(239,68,68,0.12);
     border: 1px solid rgba(239,68,68,0.3);
@@ -1627,73 +1516,65 @@ body {
 /* ============================================
    TABLES (shared)
    ============================================ */
+/* Khung bang dung chung cho khu vuc admin hoac bang custom */
 .admin-table-wrap {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     overflow: hidden;
 }
-
 .admin-table {
     margin: 0;
     color: var(--text-primary);
 }
-
-    .admin-table thead th {
-        background: var(--bg-dark-2);
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        border-bottom: 1px solid var(--border);
-        padding: 14px 16px;
-        white-space: nowrap;
-    }
-
-    .admin-table tbody td {
-        border-bottom: 1px solid var(--border);
-        padding: 14px 16px;
-        vertical-align: middle;
-        font-size: 0.88rem;
-        color: var(--text-secondary);
-    }
-
-    .admin-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-
-    .admin-table tbody tr:hover td {
-        background: var(--bg-card-hover);
-    }
-
-    .admin-table tfoot td {
-        background: var(--bg-dark-2);
-        border-top: 1px solid var(--border);
-        padding: 14px 16px;
-    }
+.admin-table thead th {
+    background: var(--bg-dark-2);
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    white-space: nowrap;
+}
+.admin-table tbody td {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+    vertical-align: middle;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.admin-table tbody tr:hover td {
+    background: var(--bg-card-hover);
+}
+.admin-table tfoot td {
+    background: var(--bg-dark-2);
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+}
 
 /* ============================================
    BREADCRUMB
    ============================================ */
+/* Thanh duong dan breadcrumb */
 .breadcrumb {
     background: none;
     padding: 0;
     font-size: 0.85rem;
 }
-
 .breadcrumb-item a {
     color: var(--text-muted);
 }
-
-    .breadcrumb-item a:hover {
-        color: var(--primary-light);
-    }
-
+.breadcrumb-item a:hover {
+    color: var(--primary-light);
+}
 .breadcrumb-item.active {
     color: var(--text-secondary);
 }
-
 .breadcrumb-item + .breadcrumb-item::before {
     color: var(--text-muted);
 }
@@ -1701,36 +1582,32 @@ body {
 /* ============================================
    ANIMATIONS
    ============================================ */
+/* Hieu ung xuat hien tu duoi len */
 @keyframes fadeInUp {
     from {
         opacity: 0;
         transform: translateY(20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
-
 @keyframes fadeInDown {
     from {
         opacity: 0;
         transform: translateY(-20px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
-
 @keyframes fadeInRight {
     from {
         opacity: 0;
         transform: translateX(30px);
     }
-
     to {
         opacity: 1;
         transform: translateX(0);
@@ -1740,66 +1617,56 @@ body {
 /* ============================================
    RESPONSIVE
    ============================================ */
+/* Quy tac responsive cho tablet nho va mobile ngang */
 @media (max-width: 768px) {
     .hero-section {
         padding: 80px 0 40px;
     }
-
     .hero-stats {
         gap: 20px;
     }
-
     .stat-num {
         font-size: 1.2rem;
     }
-
     .cart-header, .cart-row {
         grid-template-columns: 1fr 1fr 40px;
     }
-
-        .cart-header span:nth-child(2),
-        .cart-header span:nth-child(3),
-        .cart-row .cart-price,
-        .cart-row .cart-qty-form {
-            display: none;
-        }
-
+    .cart-header span:nth-child(2),
+    .cart-header span:nth-child(3),
+    .cart-row .cart-price,
+    .cart-row .cart-qty-form {
+        display: none;
+    }
     .search-input {
         width: 140px;
     }
-
-        .search-input:focus {
-            width: 180px;
-        }
-
+    .search-input:focus {
+        width: 180px;
+    }
     .checkout-form-wrap {
         padding: 20px;
     }
-
     .auth-card {
         padding: 28px 20px;
     }
 }
-
 @media (max-width: 576px) {
     .hero-title {
         font-size: 2rem;
     }
-
     .hero-actions .btn {
         width: 100%;
         margin-bottom: 8px;
     }
-
     .hero-actions {
         display: flex;
         flex-direction: column;
     }
-
     .detail-price {
         font-size: 1.4rem;
     }
 }
+/* The tong ket tren trang dat hang thanh cong */
 .order-success-page,
 .order-success-page .card,
 .order-success-page .summary-card {
@@ -1827,23 +1694,19 @@ body {
 .order-success-page .summary-card {
     color: #f4f7ff;
 }
-
 .order-success-page .text-muted,
 .order-success-page .small,
 .order-success-page .subtext {
     color: rgba(255,255,255,.78) !important;
 }
-
 .order-success-page .summary-card {
     background: #111827;
     border: 1px solid rgba(255,255,255,.08);
     box-shadow: 0 16px 40px rgba(0,0,0,.35);
 }
-
 .order-success-page .summary-label {
     color: rgba(255,255,255,.72);
 }
-
 .order-success-page .summary-value {
     color: #ffffff;
     font-weight: 600;
@@ -1854,20 +1717,20 @@ body {
     border: 1px solid rgba(255,255,255,.12);
     border-radius: 24px;
 }
-
 .lucky-wheel-page .result-title {
     color: #60a5fa;
     font-weight: 800;
 }
-
 .lucky-wheel-page .result-text {
     color: #fff;
     font-size: 1.35rem;
     font-weight: 700;
 }
+
 /* ============================================
    Lucky Wheel & Prize Modal (shared styles)
    ============================================ */
+/* Hop modal phan thuong dung chung */
 #prizeModal .modal-content {
     background: linear-gradient(180deg, #0f172a, #111827);
     color: #fff;
@@ -1875,28 +1738,26 @@ body {
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0,0,0,.45);
 }
-
+/* Noi dung ben trong modal phan thuong */
 #prizeModal .modal-body {
     padding: 2.5rem 1.5rem;
 }
-
+/* Icon qua tang trong modal phan thuong */
 #prizeModal .bi-gift {
     color: #ff5a76 !important;
     font-size: 4rem;
 }
-
 #prizeModal h3 {
     color: #60a5fa !important;
     font-weight: 800;
 }
-
 #prizeText {
     color: #ffffff;
     font-size: 1.4rem;
     font-weight: 700;
     margin-top: 1rem;
 }
-
+/* Nut phu trong modal phan thuong */
 #prizeModal .btn-secondary {
     background: #374151;
     border-color: #374151;
@@ -1904,7 +1765,6 @@ body {
     padding: .65rem 1.25rem;
     font-weight: 600;
 }
-
 #prizeModal .btn-secondary:hover {
     background: #4b5563;
     border-color: #4b5563;
@@ -1914,7 +1774,7 @@ body {
     flex-direction: column;
     gap: 14px;
 }
-
+/* Nhan ten nhom bien the */
 .variant-group-label {
     font-size: .82rem;
     font-weight: 700;
@@ -1923,7 +1783,7 @@ body {
     color: #94a3b8;
     margin-bottom: 8px;
 }
-
+/* Nut vien cho tung gia tri bien the */
 .variant-pill {
     border: 1px solid rgba(255,255,255,.14);
     background: #0f172a;
@@ -1935,12 +1795,11 @@ body {
     cursor: pointer;
     transition: all .18s ease;
 }
-
 .variant-pill:hover {
     border-color: #6366f1;
     transform: translateY(-1px);
 }
-
+    /* Trang thai dang chon cua bien the */
 .variant-pill.active {
     background: rgba(99,102,241,.16);
     border-color: #896d96cc;
