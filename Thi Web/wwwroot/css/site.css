@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    TECHSHOP - MAIN STYLESHEET
    Dark Tech Theme | Modern E-Commerce
    ============================================ */
@@ -19,6 +19,9 @@
     --primary-glow: rgba(37,99,235,0.22);
     --accent: #0891b2;
     --success: #10b981;
+    --success-bg: #d1e7dd;
+    --success-border: #badbcc;
+    --success-text: #0a3622;
     --warning: #f59e0b;
     --danger: #ef4444;
     --text-primary: #10213d;
@@ -52,6 +55,9 @@
     --primary-glow: rgba(37,99,235,0.25);
     --accent: #06b6d4;
     --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.12);
+    --success-border: rgba(16, 185, 129, 0.3);
+    --success-text: #6ee7b7;
     --warning: #f59e0b;
     --danger: #ef4444;
     --text-primary: #f1f5f9;
@@ -1503,9 +1509,9 @@ to {
     border: none;
 }
 .alert-success {
-    background: rgba(16,185,129,0.12);
-    border: 1px solid rgba(16,185,129,0.3);
-    color: #6ee7b7;
+    background: var(--success-bg);
+    border: 1px solid var(--success-border);
+    color: var(--success-text);
 }
 .alert-danger {
     background: rgba(239,68,68,0.12);

@@ -1,4 +1,4 @@
-﻿@model TechShop.Models.Product
+@model TechShop.Models.Product
 @{
     ViewData["Title"] = Model.Name;
     var related = ViewBag.Related as List<TechShop.Models.Product>;
@@ -383,7 +383,7 @@
     }
 
     .rel-card-img {
-        aspect-ratio: 1; background: #1e293b;
+        aspect-ratio: 1; background: #fff;
         display: flex; align-items: center; justify-content: center;
         padding: 16px; overflow: hidden;
     }
