@@ -90,13 +90,14 @@
     }
 
     .qr-payment-box {
-        background: #ffffff;
+        background: var(--bg-card);
         padding: 25px;
         border-radius: 16px;
         text-align: center;
         max-width: 420px;
         margin: 30px auto;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--border);
     }
 
         .qr-payment-box img {
@@ -112,16 +113,17 @@
     }
 
     .qr-slogan {
-        color: #000000;
+        color: var(--text-secondary);
         font-size: 14px;
     }
 
     .qr-bank-info {
         background: var(--bg-dark-2);
-        color: #fff;
-        padding: 10px;
-        border-radius: 8px;
+        color: var(--text-primary);
+        padding: 15px;
+        border-radius: 12px;
         font-size: 14px;
+        border: 1px solid var(--border);
     }
 </style>
 
@@ -201,7 +203,7 @@
                 @foreach (var od in Model.OrderDetails)
                 {
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@od.Product?.Name x@od.Quantity</span>
+                        <span>@od.Product?.Name x @od.Quantity</span>
                         <span>@((od.UnitPrice * od.Quantity).ToString("N0")) ₫</span>
                     </div>
                 }
