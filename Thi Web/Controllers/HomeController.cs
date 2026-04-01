@@ -12,7 +12,7 @@
             _userManager = userManager;
             _emailService = emailService;
         }
-
+        // GET: /Home/Index
         public async Task<IActionResult> Index(int? categoryId, string? search)
         {
             var categories = await _context.Categories.Include(c => c.Products).ToListAsync();
@@ -68,7 +68,7 @@
 
             return View(products);
         }
-
+        // GET: /Home/FilterProducts
         public async Task<IActionResult> FilterProducts(int? categoryId, string? search)
         {
             IQueryable<Product> query = _context.Products
@@ -90,7 +90,7 @@
         public IActionResult Privacy() => View();
         public IActionResult ChinhSach() => View();
         public IActionResult GioiThieu() => View();
-
+        // POST: /Home/Đăng ký nhận bản tin
         [HttpPost]
         public async Task<IActionResult> SubscribeNewsletter(string email)
         {

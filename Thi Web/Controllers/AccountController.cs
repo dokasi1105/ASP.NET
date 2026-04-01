@@ -91,6 +91,7 @@ namespace TechShop.Controllers
                 TempData["Success"] = "Đăng ký thành công! Chào mừng bạn đến với TechShop.";
                 return RedirectToAction("Index", "Home");
             }
+            // Hiển thị lỗi nếu có
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
 
@@ -224,7 +225,7 @@ namespace TechShop.Controllers
             ViewBag.QrCode = $"otpauth://totp/TechShop:{user.Email}?secret={key}&issuer=TechShop";
             return View();
         }
-
+        // Người dùng sẽ nhập mã từ app Authenticator để xác nhận
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -298,6 +299,7 @@ namespace TechShop.Controllers
 
         // ===== FORGOT & RESET PASSWORD =====
         [HttpGet]
+        // Trang nhập email để nhận link đặt lại mật khẩu
         public IActionResult ForgotPassword() => View();
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -15,7 +15,7 @@ namespace TechShop.Controllers
             _context = context;
             _userManager = userManager;
         }
-
+        // dành cho khách hàng đặt lịch sửa chữa thiết bị
         [HttpGet]
         public async Task<IActionResult> Booking()
         {
@@ -39,7 +39,7 @@ namespace TechShop.Controllers
 
             return View(model);
         }
-
+        // Xử lý POST khi khách hàng gửi form đặt lịch
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Booking(ServiceTicket model)

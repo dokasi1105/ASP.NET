@@ -1,7 +1,7 @@
 ﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
 
-// Write your JavaScript code.
+// Scroll Position.
 (function () {
     const KEY = "techshop:lastScroll";
 
@@ -25,7 +25,7 @@
         }
     }
 })();
-
+// Avatar Upload
 (function () {
     document.addEventListener("DOMContentLoaded", function () {
         const avatarTrigger = document.getElementById("navAvatarTrigger");
@@ -48,7 +48,7 @@
     });
 })();
 
-// Global handler: nếu AJAX gặp 401 thì đưa về Login có returnUrl
+// Xử lý lỗi đăng nhập hệ thống
 (function () {
     if (window.jQuery) {
         $(document).ajaxError(function (_event, jqxhr) {
@@ -61,7 +61,7 @@
         });
     }
 })();
-
+// Wishlist Toggle
 if (window.jQuery) {
     $(document).on("click", ".btn-wishlist", function () {
         const id = $(this).data("id");
@@ -76,7 +76,7 @@ if (window.jQuery) {
             });
     });
 }
-
+// Theme Toggle
 (function () {
     const THEME_KEY = "techshop-theme";
     const root = document.documentElement;
@@ -117,7 +117,7 @@ if (window.jQuery) {
             );
         });
     }
-
+    // Áp dụng theme và lưu vào localStorage
     function applyTheme(theme) {
         root.setAttribute("data-theme", theme);
         localStorage.setItem(THEME_KEY, theme);
@@ -136,7 +136,7 @@ if (window.jQuery) {
             });
         });
     });
-
+    // Lắng nghe sự kiện storage để đồng bộ theme giữa các tab
     window.addEventListener("storage", function (e) {
         if (e.key === THEME_KEY) {
             applyTheme(getSavedTheme());

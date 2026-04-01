@@ -17,13 +17,13 @@ namespace TechShop.Controllers
             _userManager = userManager;
             _context = context;
         }
-
+        // GET: /Game/LuckyWheel
         public async Task<IActionResult> LuckyWheel()
         {
             var user = await _userManager.GetUserAsync(User);
             return View(user);
         }
-
+        // POST: /Game/SpinWheel
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> SpinWheel()
@@ -72,7 +72,7 @@ namespace TechShop.Controllers
                 currentPoints = user.LoyaltyPoints
             });
         }
-
+        // Phương thức hỗ trợ để lấy chỉ mục ngẫu nhiên có trọng số
         private int GetWeightedIndex(double[] weights)
         {
             var total = weights.Sum();

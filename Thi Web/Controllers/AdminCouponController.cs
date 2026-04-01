@@ -16,7 +16,7 @@ namespace TechShop.Controllers
         {
             _context = context;
         }
-
+        // GET: Admin/Coupon
         public async Task<IActionResult> Index()
         {
             var coupons = await _context.Coupons.OrderByDescending(x => x.Id).ToListAsync();
@@ -28,7 +28,7 @@ namespace TechShop.Controllers
         {
             return View("~/Views/Admin/Coupon/Create.cshtml", new Coupon());
         }
-
+        // POST: Admin/Coupon/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Coupon model)

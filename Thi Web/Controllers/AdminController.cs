@@ -34,7 +34,7 @@ namespace TechShop.Controllers
             ViewBag.SelectedCategory = categoryId;
             return View("~/Views/Admin/Product/Index.cshtml", products);
         }
-
+        // Tạo mới và chỉnh sửa sản phẩm sẽ cho phép admin chọn các thuộc tính biến thể (nếu có) theo từng danh mục
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -81,7 +81,7 @@ namespace TechShop.Controllers
 
             return View("~/Views/Admin/Product/Create.cshtml", model);
         }
-
+        // Edit sẽ load sẵn các option đã chọn của sản phẩm để admin dễ chỉnh sửa
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -104,7 +104,7 @@ namespace TechShop.Controllers
 
             return View("~/Views/Admin/Product/Edit.cshtml", product);
         }
-
+        // Edit sẽ xóa hết selection cũ rồi add lại theo dữ liệu mới admin chọn
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Product model, List<int> selectedOptionIds)
@@ -325,7 +325,7 @@ namespace TechShop.Controllers
             if (points >= 500) return "Silver";
             return "Bronze";
         }
-
+        // Cập nhật trạng thái đơn hàng và tự động cộng/trừ điểm khi chuyển sang Completed/Cancelled
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, string status)
@@ -434,7 +434,7 @@ namespace TechShop.Controllers
             ViewBag.UserRoles = await _userManager.GetRolesAsync(user);
             return View("~/Views/Admin/User/AssignRole.cshtml");
         }
-
+        // Giao diện AssignRole sẽ có checkbox để admin tick vào role muốn gán hoặc bỏ tick để gỡ role, nên mỗi lần submit sẽ gửi lên cả tên role và trạng thái tick (assign = true/false)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignRole(string userId, string roleName, bool assign)

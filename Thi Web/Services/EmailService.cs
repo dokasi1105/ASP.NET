@@ -14,7 +14,7 @@ namespace TechShop.Services
         Task SendMembershipUpgradeEmailAsync(string toEmail, string fullName, string oldTier, string newTier, int currentPoints);
         Task<bool> SendAsync(string to, string subject, string htmlBody);
     }
-
+    // Dịch vụ email
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _config;
@@ -27,7 +27,7 @@ namespace TechShop.Services
             _logger = logger;
             _pdfService = pdfService;
         }
-
+        // Lấy cấu hình SMTP từ appsettings.json
         private (string Host, int Port, bool EnableSsl, string Username, string Password, string SenderEmail, string SenderName) GetSmtp()
         {
             string host = _config["SmtpSettings:Host"] ?? "";
@@ -43,7 +43,7 @@ namespace TechShop.Services
 
             return (host, port, enableSsl, username, password, senderEmail, senderName);
         }
-
+        // Phương thức gửi email chung
         private async Task SendEmailAsync(MimeMessage message)
         {
             var smtp = GetSmtp();
@@ -68,6 +68,7 @@ namespace TechShop.Services
                 await client.DisconnectAsync(true);
             }
         }
+        // Phương thức gửi email đơn giản (chỉ HTML)
         public async Task<bool> SendAsync(string to, string subject, string htmlBody)
         {
             try
@@ -96,7 +97,7 @@ namespace TechShop.Services
                 return false;
             }
         }
-
+        // Phương thức gửi email chào mừng
         public async Task SendWelcomeEmailAsync(string toEmail, string fullName)
         {
             var smtp = GetSmtp();
@@ -118,7 +119,7 @@ namespace TechShop.Services
 
             await SendEmailAsync(message);
         }
-
+        // Phương thức gửi email khôi phục mật khẩu
         public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
         {
             var smtp = GetSmtp();
@@ -142,7 +143,7 @@ namespace TechShop.Services
 
             await SendEmailAsync(message);
         }
-
+        // Phương thức gửi email thông báo nâng cấp thẻ thành viên
         public async Task SendMembershipUpgradeEmailAsync(string toEmail, string fullName, string oldTier, string newTier, int currentPoints)
         {
             var smtp = GetSmtp();
@@ -168,7 +169,7 @@ namespace TechShop.Services
 
             await SendEmailAsync(message);
         }
-
+        // Phương thức gửi email xác nhận đơn hàng với hóa đơn PDF đính kèm
         public async Task SendOrderConfirmationAsync(string toEmail, string customerName, Order order)
         {
             var smtp = GetSmtp();

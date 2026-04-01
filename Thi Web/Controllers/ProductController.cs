@@ -235,7 +235,7 @@ namespace TechShop.Controllers
             HttpContext.Session.SetString("CompareList", JsonSerializer.Serialize(compareIds));
             return Json(new { success = true, count = compareIds.Count, message = "Đã thêm vào danh sách so sánh." });
         }
-
+        // Xóa khỏi so sánh
         [HttpPost]
         public IActionResult RemoveFromCompare(int productId)
         {

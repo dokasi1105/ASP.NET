@@ -5,7 +5,7 @@
         private readonly ICartService _cartService;
 
         public CartController(ICartService cartService) => _cartService = cartService;
-
+        // GET: /Cart
         public IActionResult Index()
         {
             var cart = _cartService.GetCart(HttpContext.Session);

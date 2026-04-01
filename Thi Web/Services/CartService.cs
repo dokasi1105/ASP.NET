@@ -3,6 +3,7 @@ using TechShop.Models;
 
 namespace TechShop.Services
 {
+    // Interface định nghĩa các phương thức quản lý giỏ hàng
     public interface ICartService
     {
         List<CartItem> GetCart(ISession session);
@@ -12,7 +13,7 @@ namespace TechShop.Services
         void ClearCart(ISession session);
         decimal GetTotal(ISession session);
     }
-
+    // Lưu trữ giỏ hàng trong session dưới dạng JSON
     public class CartService : ICartService
     {
         private const string CartKey = "Cart";
@@ -31,7 +32,7 @@ namespace TechShop.Services
             else cart.Add(item);
             SaveCart(session, cart);
         }
-
+        // Cập nhật số lượng sản phẩm trong giỏ hàng, nếu số lượng <= 0 thì xóa sản phẩm khỏi giỏ
         public void UpdateQuantity(ISession session, int productId, int quantity)
         {
             var cart = GetCart(session);
@@ -43,7 +44,7 @@ namespace TechShop.Services
             }
             SaveCart(session, cart);
         }
-
+        // Xóa sản phẩm khỏi giỏ hàng
         public void RemoveFromCart(ISession session, int productId)
         {
             var cart = GetCart(session);
