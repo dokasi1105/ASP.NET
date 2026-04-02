@@ -160,6 +160,13 @@
     }
     .section-title-sm::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
+    .color-dot {
+        width: 14px; height: 14px; border-radius: 50%;
+        border: 1px solid var(--border); flex-shrink: 0;
+        box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
+    }
+
+
     .detail-desc {
         font-size: .92rem; color: #94a3b8; line-height: 1.8;
         padding-left: 0; margin: 0;
@@ -606,8 +613,8 @@
                             @if (Model.Variants != null && Model.Variants.Any(v => v.IsActive))
                             {
                                 <div class="mb-3">
-                                    <label class="form-label text-light fw-semibold">Chọn biến thể</label>
-                                    <select name="productVariantId" class="form-select bg-dark text-light border-secondary">
+                                    <label class="form-label fw-bold" style="color:var(--text-primary)">Chọn biến thể</label>
+                                    <select name="productVariantId" class="form-select">
                                         <option value="">-- Chọn biến thể --</option>
                                         @foreach (var v in Model.Variants.Where(v => v.IsActive))
                                         {
@@ -638,14 +645,15 @@
                                                 {
                                                     var opt = item.ProductVariantOption!;
                                                     var isColorGroup = g.Key == "Màu Sắc";
-                                                    var textColor = !string.IsNullOrWhiteSpace(opt.ColorHex) ? opt.ColorHex : "#f8fafc";
-
                                                     <button type="button"
-                                                            class="variant-pill"
+                                                            class="variant-pill d-flex align-items-center gap-2"
                                                             data-group="@g.Key"
-                                                            data-option-id="@opt.Id"
-                                                            style="@(isColorGroup ? $"color:{textColor};" : "")">
-                                                        @opt.Value
+                                                            data-option-id="@opt.Id">
+                                                        @if (isColorGroup && !string.IsNullOrWhiteSpace(opt.ColorHex))
+                                                        {
+                                                            <span class="color-dot" style="background-color:@opt.ColorHex"></span>
+                                                        }
+                                                        <span>@opt.Value</span>
                                                     </button>
                                                 }
                                             </div>

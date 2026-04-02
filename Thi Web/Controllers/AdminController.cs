@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -352,7 +352,7 @@ namespace TechShop.Controllers
                     // if (oldTier != order.User.MembershipTier && !string.IsNullOrEmpty(order.User.Email))
                     //     await _emailService.SendMembershipUpgradeEmailAsync(...);
 
-                    TempData["Success"] = $"Đã cập nhật trạng thái + cộng {earned} điểm (từ {oldPoints} ➜ {order.User.LoyaltyPoints}).";
+                    TempData["Success"] = $"Đã cập nhật trạng thái + cộng {earned} điểm (từ {oldPoints} → {order.User.LoyaltyPoints}).";
                 }
                 // Nếu chuyển sang Cancelled mà đã award -> trừ
                 if (status == "Cancelled" && order.LoyaltyPointsAwarded)
@@ -364,7 +364,7 @@ namespace TechShop.Controllers
                     order.User.MembershipTier = GetTierByPoints(order.User.LoyaltyPoints);
                     order.LoyaltyPointsAwarded = false;
 
-                    TempData["Success"] = $"Đã hủy đơn và trừ lại {earned} điểm (từ {oldPoints} ➜ {order.User.LoyaltyPoints}).";
+                    TempData["Success"] = $"Đã hủy đơn và trừ lại {earned} điểm (từ {oldPoints} → {order.User.LoyaltyPoints}).";
                 }
             }
             await _context.SaveChangesAsync();
@@ -451,8 +451,16 @@ namespace TechShop.Controllers
             TempData["Success"] = "Cập nhật quyền thành công!";
             return RedirectToAction(nameof(AssignRole), new { userId });
         }
+        [HttpGet]
+        public async Task<IActionResult> EditLoyalty(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+            return View("~/Views/Admin/User/EditLoyalty.cshtml", user);
+        }
+
         [HttpPost]
-        [ValidateAntiForgeryToken] // Thêm bảo mật chống CSRF
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateLoyalty(string userId, int points, string tier)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -465,6 +473,7 @@ namespace TechShop.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
     }
 
     // ================================================================

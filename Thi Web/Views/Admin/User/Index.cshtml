@@ -1,4 +1,4 @@
-﻿@model List<TechShop.Models.ApplicationUser>
+@model List<TechShop.Models.ApplicationUser>
 @{
     ViewData["Title"] = "Quản lý người dùng";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -60,10 +60,10 @@
                     </td>
                     <td>
                         <div class="admin-actions">
-                            <button class="btn-admin-action shadow-sm" data-bs-toggle="modal" 
-                                    data-bs-target="#editLoyalty-@user.Id" title="Sửa Điểm/Thẻ">
+                            <a asp-action="EditLoyalty" asp-route-userId="@user.Id"
+                               class="btn-admin-action shadow-sm" title="Sửa Điểm/Thẻ">
                                 <i class="bi bi-gem"></i>
-                            </button>
+                            </a>
 
                             <a asp-controller="AdminUser" asp-action="AssignRole" asp-route-userId="@user.Id"
                                class="btn-admin-action shadow-sm text-info" title="Phân quyền">
@@ -81,45 +81,7 @@
                         </div>
                     </td>
                 </tr>
-
-                <!-- Modal cập nhật điểm/thẻ -->
-                <div class="modal fade" id="editLoyalty-@user.Id" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <form asp-action="UpdateLoyalty" method="post" class="modal-content border-0 shadow-lg bg-card">
-                            @Html.AntiForgeryToken()
-                            <div class="modal-header border-bottom border-light-subtle py-3">
-                                <h5 class="modal-title fw-bold text-primary">
-                                    <i class="bi bi-pencil-square me-2"></i>Cập nhật tài khoản
-                                </h5>
-                                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body p-4 text-start">
-                                <p class="text-muted small mb-4">Điều chỉnh thông số thành viên cho <strong>@user.FullName</strong></p>
-                                <input type="hidden" name="userId" value="@user.Id" />
-                                
-                                <div class="mb-4">
-                                    <label class="form-label fw-bold">Điểm tích lũy (Loyalty Points)</label>
-                                    <input type="number" name="points" class="form-control" value="@user.LoyaltyPoints" required min="0" />
-                                </div>
-                                
-                                <div class="mb-2">
-                                    <label class="form-label fw-bold">Hạng thành viên</label>
-                                    <select name="tier" class="form-select">
-                                        <option value="Bronze" selected="@(user.MembershipTier == "Bronze")">Bronze (Đồng)</option>
-                                        <option value="Silver" selected="@(user.MembershipTier == "Silver")">Silver (Bạc)</option>
-                                        <option value="Gold" selected="@(user.MembershipTier == "Gold")">Gold (Vàng)</option>
-                                        <option value="Diamond" selected="@(user.MembershipTier == "Diamond")">Diamond (Kim cương)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="modal-footer border-top-0 p-4">
-                                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Hủy</button>
-                                <button type="submit" class="btn btn-primary px-4 shadow-sm">Lưu thay đổi</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
             }
         </tbody>
     </table>
-</div>
+</div>

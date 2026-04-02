@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -251,6 +251,42 @@ namespace TechShop.Controllers
                 .ToListAsync();
 
             return View(orders);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ValidateCoupon(string couponCode)
+        {
+            var cart = _cartService.GetCart(HttpContext.Session);
+            if (!cart.Any())
+                return Json(new { success = false, message = "Giỏ hàng trống." });
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Json(new { success = false, message = "Vui lòng đăng nhập lại." });
+
+            decimal cartTotal = _cartService.GetTotal(HttpContext.Session);
+            int totalItems = cart.Sum(x => x.Quantity);
+
+            var (couponDiscount, couponError, _) = await ApplyCouponAsync(couponCode, cartTotal);
+
+            decimal rate = GetMembershipDiscountRate(user.MembershipTier);
+            decimal memberDiscount = Math.Round(cartTotal * rate, 0);
+            decimal shippingFee = CalculateShippingFee(totalItems, cartTotal, user.MembershipTier);
+
+            decimal finalTotal = cartTotal - memberDiscount - couponDiscount + shippingFee;
+            if (finalTotal < 0) finalTotal = 0;
+
+            return Json(new
+            {
+                success = string.IsNullOrEmpty(couponError),
+                message = string.IsNullOrEmpty(couponError) ? "Áp dụng mã thành công!" : couponError,
+                couponDiscount = couponDiscount,
+                memberDiscount = memberDiscount,
+                shippingFee = shippingFee,
+                finalTotal = finalTotal,
+                cartTotal = cartTotal,
+                couponCode = couponCode?.ToUpperInvariant()
+            });
         }
     }
 }

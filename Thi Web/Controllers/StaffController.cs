@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -68,7 +68,7 @@ namespace TechShop.Controllers
                 _context.Products.Add(model);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "ThÃªm sáº£n pháº©m thÃ nh cÃ´ng!";
+                TempData["Success"] = "Thêm sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -133,7 +133,7 @@ namespace TechShop.Controllers
                 _context.Products.Update(model);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Cáº­p nháº­t sáº£n pháº©m thÃ nh cÃ´ng!";
+                TempData["Success"] = "Cập nhật sản phẩm thành công!";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -155,24 +155,24 @@ namespace TechShop.Controllers
         {
             Product? product = await _context.Products.FindAsync(id);
             if (product != null) { _context.Products.Remove(product); await _context.SaveChangesAsync(); }
-            TempData["Success"] = "ÄÃ£ xÃ³a sáº£n pháº©m.";
+            TempData["Success"] = "Đã xóa sản phẩm.";
             return RedirectToAction(nameof(Index));
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateImageUrl(int productId, string imageUrl)
         {
-            // 1. Cáº­p nháº­t Database
+            // 1. Cập nhật Database
             var product = await _context.Products.FindAsync(productId);
-            if (product == null) return Json(new { success = false, message = "KhÃ´ng tÃ¬m tháº¥y sáº£n pháº©m." });
+            if (product == null) return Json(new { success = false, message = "Không tìm thấy sản phẩm." });
 
             product.ImageUrl = imageUrl;
             await _context.SaveChangesAsync();
 
-            // 2. Cáº­p nháº­t trá»±c tiáº¿p vÃ o mÃ£ nguá»“n ApplicationDbContext.cs (Seed Data)
+            // 2. Cập nhật trực tiếp vào mã nguồn ApplicationDbContext.cs (Seed Data)
             try
             {
-                // ÄÆ°á»ng dáº«n tuyá»‡t Ä‘á»‘i tá»›i file context
+                // Đường dẫn tuyệt đối tới file context
                 string filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "ApplicationDbContext.cs");
                 
                 if (System.IO.File.Exists(filePath))
@@ -182,10 +182,10 @@ namespace TechShop.Controllers
 
                     for (int i = 0; i < lines.Length; i++)
                     {
-                        // TÃ¬m dÃ²ng chá»©a Product cÃ³ Id tÆ°Æ¡ng á»©ng
+                        // Tìm dòng chứa Product có Id tương ứng
                         if (lines[i].Contains($"Id = {productId},") && lines[i].Contains("new Product"))
                         {
-                            // Thay tháº¿ giÃ¡ trá»‹ cá»§a ImageUrl = "..."
+                            // Thay thế giá trị của ImageUrl = "..."
                             lines[i] = System.Text.RegularExpressions.Regex.Replace(
                                 lines[i], 
                                 @"ImageUrl\s*=\s*""[^""]*""", 
@@ -204,11 +204,11 @@ namespace TechShop.Controllers
             }
             catch (Exception ex)
             {
-                // Náº¿u lá»—i cáº­p nháº­t code thÃ¬ váº«n bÃ¡o thÃ nh cÃ´ng á»Ÿ DB nhÆ°ng kÃ¨m cáº£nh bÃ¡o lá»—i file
-                return Json(new { success = true, message = "ÄÃ£ lÆ°u DB nhÆ°ng lá»—i cáº­p nháº­t file code: " + ex.Message });
+                // Nếu lỗi cập nhật code thì vẫn báo thành công ở DB nhưng kèm cảnh báo lỗi file
+                return Json(new { success = true, message = "Đã lưu DB nhưng lỗi cập nhật file code: " + ex.Message });
             }
 
-            return Json(new { success = true, message = "ÄÃ£ cáº­p nháº­t hÃ¬nh áº£nh vÃ o cáº£ Database vÃ  Source Code!" });
+            return Json(new { success = true, message = "Đã cập nhật hình ảnh vào cả Database và Source Code!" });
         }
     }
 
@@ -242,7 +242,7 @@ namespace TechShop.Controllers
             {
                 _context.Categories.Add(model);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "ThÃªm danh má»¥c thÃ nh cÃ´ng!";
+                TempData["Success"] = "Thêm danh mục thành công!";
                 return RedirectToAction(nameof(Index));
             }
             return View("~/Views/Staff/Category/Create.cshtml", model);
@@ -266,7 +266,7 @@ namespace TechShop.Controllers
             {
                 _context.Categories.Update(model);
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Cáº­p nháº­t danh má»¥c thÃ nh cÃ´ng!";
+                TempData["Success"] = "Cập nhật danh mục thành công!";
                 return RedirectToAction(nameof(Index));
             }
             return View("~/Views/Staff/Category/Edit.cshtml", model);
@@ -278,7 +278,7 @@ namespace TechShop.Controllers
         {
             Category? category = await _context.Categories.FindAsync(id);
             if (category != null) { _context.Categories.Remove(category); await _context.SaveChangesAsync(); }
-            TempData["Success"] = "ÄÃ£ xÃ³a danh má»¥c.";
+            TempData["Success"] = "Đã xóa danh mục.";
             return RedirectToAction(nameof(Index));
         }
     }
@@ -315,7 +315,7 @@ namespace TechShop.Controllers
 
         private int CalculateEarnedPoints(decimal totalAmount)
         {
-            // vÃ­ dá»¥: 1 Ä‘iá»ƒm / 100.000
+            // ví dụ: 1 điểm / 100.000
             return (int)Math.Floor(totalAmount / 100_000m);
         }
         private string GetTierByPoints(int points)
@@ -338,7 +338,7 @@ namespace TechShop.Controllers
             order.Status = status;
             if (order.User != null)
             {
-                // Náº¿u chuyá»ƒn sang Completed vÃ  chÆ°a award -> cá»™ng
+                // Nếu chuyển sang Completed và chưa award -> cộng
                 if (status == "Completed" && !order.LoyaltyPointsAwarded)
                 {
                     int earned = CalculateEarnedPoints(order.TotalAmount);
@@ -348,13 +348,13 @@ namespace TechShop.Controllers
                     order.User.MembershipTier = GetTierByPoints(order.User.LoyaltyPoints);
                     order.LoyaltyPointsAwarded = true;
 
-                    // TODO: náº¿u báº¡n Ä‘Ã£ thÃªm SendMembershipUpgradeEmailAsync
+                    // TODO: nếu bạn đã thêm SendMembershipUpgradeEmailAsync
                     // if (oldTier != order.User.MembershipTier && !string.IsNullOrEmpty(order.User.Email))
                     //     await _emailService.SendMembershipUpgradeEmailAsync(...);
 
-                    TempData["Success"] = $"ÄÃ£ cáº­p nháº­t tráº¡ng thÃ¡i + cá»™ng {earned} Ä‘iá»ƒm (tá»« {oldPoints} âžœ {order.User.LoyaltyPoints}).";
+                    TempData["Success"] = $"Đã cập nhật trạng thái + cộng {earned} điểm (từ {oldPoints} → {order.User.LoyaltyPoints}).";
                 }
-                // Náº¿u chuyá»ƒn sang Cancelled mÃ  Ä‘Ã£ award -> trá»«
+                // Nếu chuyển sang Cancelled mà đã award -> trừ
                 if (status == "Cancelled" && order.LoyaltyPointsAwarded)
                 {
                     int earned = CalculateEarnedPoints(order.TotalAmount);
@@ -364,7 +364,7 @@ namespace TechShop.Controllers
                     order.User.MembershipTier = GetTierByPoints(order.User.LoyaltyPoints);
                     order.LoyaltyPointsAwarded = false;
 
-                    TempData["Success"] = $"ÄÃ£ há»§y Ä‘Æ¡n vÃ  trá»« láº¡i {earned} Ä‘iá»ƒm (tá»« {oldPoints} âžœ {order.User.LoyaltyPoints}).";
+                    TempData["Success"] = $"Đã hủy đơn và trừ lại {earned} điểm (từ {oldPoints} → {order.User.LoyaltyPoints}).";
                 }
             }
             await _context.SaveChangesAsync();
@@ -378,9 +378,9 @@ namespace TechShop.Controllers
             var order = await _context.Orders.FindAsync(orderId);
             if (order != null && order.Status == "Pending")
             {
-                order.Status = "Processing"; // Hoáº·c "Paid" tÃ¹y báº¡n Ä‘áº·t tÃªn
+                order.Status = "Processing"; // Hoặc "Paid" tùy bạn đặt tên
                 await _context.SaveChangesAsync();
-                TempData["Success"] = "Ä Ã£ xÃ¡c nháº­n thanh toÃ¡n POS thÃ nh cÃ´ng!";
+                TempData["Success"] = "Đã xác nhận thanh toán POS thành công!";
             }
             return RedirectToAction("Detail", new { id = orderId });
         }
@@ -484,11 +484,11 @@ namespace TechShop.Controllers
                 return View("~/Views/Staff/Variant/Create.cshtml", model);
             }
 
-            await UpsertGroupAsync(model.CategoryId, "MÃ u Sáº¯c", model.Colors, 1);
-            await UpsertGroupAsync(model.CategoryId, "Dung LÆ°á»£ng", model.Capacities, 2);
-            await UpsertGroupAsync(model.CategoryId, "NÃ¢ng Cáº¥p", model.Upgrades, 3);
+            await UpsertGroupAsync(model.CategoryId, "Màu Sắc", model.Colors, 1);
+            await UpsertGroupAsync(model.CategoryId, "Dung Lượng", model.Capacities, 2);
+            await UpsertGroupAsync(model.CategoryId, "Nâng Cấp", model.Upgrades, 3);
 
-            TempData["Success"] = "ÄÃ£ lÆ°u bá»™ biáº¿n thá»ƒ theo danh má»¥c.";
+            TempData["Success"] = "Đã lưu bộ biến thể theo danh mục.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -516,7 +516,7 @@ namespace TechShop.Controllers
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
-            // xÃ³a option cÅ© cá»§a group rá»“i add láº¡i theo dá»¯ liá»‡u admin nháº­p
+            // xóa option cũ của group rồi add lại theo dữ liệu admin nhập
             var oldOptions = await _context.ProductVariantOptions
                 .Where(o => o.ProductVariantGroupId == group.Id)
                 .ToListAsync();
@@ -531,7 +531,7 @@ namespace TechShop.Controllers
                 ProductVariantGroupId = group.Id,
                 Value = v,
                 SortOrder = index + 1,
-                ColorHex = groupName == "MÃ u Sáº¯c" ? GuessColorHex(v) : null,
+                ColorHex = groupName == "Màu Sắc" ? GuessColorHex(v) : null,
                 IsActive = true
             }).ToList();
 
@@ -547,14 +547,14 @@ namespace TechShop.Controllers
             var key = value.Trim().ToLowerInvariant();
             return key switch
             {
-                "Ä‘en" => "#111111",
-                "tráº¯ng" => "#f8fafc",
-                "Ä‘á»" => "#ef4444",
+                "đen" => "#111111",
+                "trắng" => "#f8fafc",
+                "đỏ" => "#ef4444",
                 "xanh" => "#3b82f6",
-                "xanh lÃ¡" => "#22c55e",
-                "vÃ ng" => "#eab308",
-                "báº¡c" => "#cbd5e1",
-                "há»“ng" => "#ec4899",
+                "xanh lá" => "#22c55e",
+                "vàng" => "#eab308",
+                "bạc" => "#cbd5e1",
+                "hồng" => "#ec4899",
                 _ => null
             };
         }
@@ -608,7 +608,7 @@ namespace TechShop.Controllers
 
     //        selectedOptionIds = selectedOptionIds?.Distinct().ToList() ?? new List<int>();
     //        if (!selectedOptionIds.Any())
-    //            ModelState.AddModelError("", "Vui lÃ²ng chá»n Ã­t nháº¥t 1 thuá»™c tÃ­nh biáº¿n thá»ƒ.");
+    //            ModelState.AddModelError("", "Vui lòng chọn ít nhất 1 thuộc tính biến thể.");
 
     //        if (!ModelState.IsValid)
     //        {
@@ -627,7 +627,7 @@ namespace TechShop.Controllers
     //            .ToListAsync();
     //        if (duplicateGroupIds.Any())
     //        {
-    //            ModelState.AddModelError("", "Má»—i nhÃ³m thuá»™c tÃ­nh chá»‰ Ä‘Æ°á»£c chá»n 1 giÃ¡ trá»‹.");
+    //            ModelState.AddModelError("", "Mỗi nhóm thuộc tính chỉ được chọn 1 giá trị.");
     //            await EnsureVariantCatalogSeededAsync();
     //            ViewBag.Products = await _context.Products.Where(p => p.IsActive).OrderBy(p => p.Name).ToListAsync();
     //            ViewBag.Options = await _context.ProductVariantOptions.Include(o => o.ProductVariantGroup).ToListAsync();
@@ -643,7 +643,7 @@ namespace TechShop.Controllers
     //        _context.ProductVariants.Add(model);
     //        await _context.SaveChangesAsync();
 
-    //        TempData["Success"] = "ÄÃ£ thÃªm biáº¿n thá»ƒ sáº£n pháº©m.";
+    //        TempData["Success"] = "Đã thêm biến thể sản phẩm.";
     //        return RedirectToAction(nameof(Index));
     //    }
 
@@ -651,12 +651,12 @@ namespace TechShop.Controllers
     //    {
     //        var blueprints = new Dictionary<string, string[]>
     //        {
-    //            ["MÃ u sáº¯c"] = new[] { "Äen", "Tráº¯ng", "Báº¡c", "Xanh", "Äá»" },
+    //            ["Màu sắc"] = new[] { "Đen", "Trắng", "Bạc", "Xanh", "Đỏ" },
     //            ["RAM"] = new[] { "8GB", "16GB", "32GB", "64GB" },
     //            ["SSD"] = new[] { "512GB", "1TB", "2TB", "4TB" },
-    //            ["PhiÃªn báº£n"] = new[] { "Standard", "Plus", "Pro", "Pro Max" },
-    //            ["Hiá»‡u nÄƒng"] = new[] { "CÆ¡ báº£n", "NÃ¢ng cao", "Cao cáº¥p" },
-    //            ["Káº¿t ná»‘i"] = new[] { "Wired", "Wireless", "Bluetooth" }
+    //            ["Phiên bản"] = new[] { "Standard", "Plus", "Pro", "Pro Max" },
+    //            ["Hiệu năng"] = new[] { "Cơ bản", "Nâng cao", "Cao cấp" },
+    //            ["Kết nối"] = new[] { "Wired", "Wireless", "Bluetooth" }
     //        };
 
     //        foreach (var entry in blueprints)
@@ -702,25 +702,25 @@ namespace TechShop.Controllers
 
     //        var allCategoryIds = categories.Select(c => c.Id).ToList();
     //        var laptopIds = categories.Where(c => c.Name.Contains("Laptop", StringComparison.OrdinalIgnoreCase)).Select(c => c.Id).ToList();
-    //        var pcPartIds = categories.Where(c => c.Name.Contains("Linh kiá»‡n", StringComparison.OrdinalIgnoreCase) || c.Name.Contains("á»” cá»©ng", StringComparison.OrdinalIgnoreCase)).Select(c => c.Id).ToList();
+    //        var pcPartIds = categories.Where(c => c.Name.Contains("Linh kiện", StringComparison.OrdinalIgnoreCase) || c.Name.Contains("Ổ cứng", StringComparison.OrdinalIgnoreCase)).Select(c => c.Id).ToList();
     //        var peripheralIds = categories.Where(c =>
-    //                c.Name.Contains("MÃ n hÃ¬nh", StringComparison.OrdinalIgnoreCase) ||
-    //                c.Name.Contains("Chuá»™t", StringComparison.OrdinalIgnoreCase) ||
-    //                c.Name.Contains("BÃ n phÃ­m", StringComparison.OrdinalIgnoreCase) ||
-    //                c.Name.Contains("Gháº¿", StringComparison.OrdinalIgnoreCase) ||
+    //                c.Name.Contains("Màn hình", StringComparison.OrdinalIgnoreCase) ||
+    //                c.Name.Contains("Chuột", StringComparison.OrdinalIgnoreCase) ||
+    //                c.Name.Contains("Bàn phím", StringComparison.OrdinalIgnoreCase) ||
+    //                c.Name.Contains("Ghế", StringComparison.OrdinalIgnoreCase) ||
     //                c.Name.Contains("Tai nghe", StringComparison.OrdinalIgnoreCase) ||
-    //                c.Name.Contains("Äiá»‡n thoáº¡i", StringComparison.OrdinalIgnoreCase))
+    //                c.Name.Contains("Điện thoại", StringComparison.OrdinalIgnoreCase))
     //            .Select(c => c.Id)
     //            .ToList();
 
     //        var groupMap = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase)
     //        {
-    //            ["MÃ u sáº¯c"] = allCategoryIds,
+    //            ["Màu sắc"] = allCategoryIds,
     //            ["RAM"] = laptopIds,
     //            ["SSD"] = laptopIds.Concat(pcPartIds).Distinct().ToList(),
-    //            ["PhiÃªn báº£n"] = peripheralIds,
-    //            ["Hiá»‡u nÄƒng"] = pcPartIds,
-    //            ["Káº¿t ná»‘i"] = peripheralIds
+    //            ["Phiên bản"] = peripheralIds,
+    //            ["Hiệu năng"] = pcPartIds,
+    //            ["Kết nối"] = peripheralIds
     //        };
 
     //        var options = await _context.ProductVariantOptions.Include(o => o.ProductVariantGroup).ToListAsync();

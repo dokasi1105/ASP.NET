@@ -162,7 +162,7 @@ namespace TechShop.Services
                     <div style='font-family:Arial,sans-serif; color:#111'>
                         <h3>Xin chào {safeName},</h3>
                         <p>Chúc mừng bạn đã được nâng cấp thẻ thành viên!</p>
-                        <p><b>{safeOld}</b> ➜ <b>{safeNew}</b></p>
+                        <p><b>{safeOld}</b> → <b>{safeNew}</b></p>
                         <p>Điểm hiện tại: <b>{currentPoints}</b></p>
                     </div>"
             }.ToMessageBody();

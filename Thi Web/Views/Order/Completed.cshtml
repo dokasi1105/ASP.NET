@@ -7,12 +7,20 @@
     string qrUrl = "";
     if (paymentMethod == "bank")
     {
-        string bankId = "MB";
-        string accountNo = "0123456789";
-        string accountName = "TECHSHOP VN";
+        // THÔNG TIN SACOMBANK CHUẨN CỦA BẠN
+        string bankId = "STB"; 
+        string accountNo = "0327469105";
+        string accountName = "NGUYEN VIET ANH";
+        
         string amount = Model!.TotalAmount.ToString("0");
         string content = $"Thanh toan don hang {Model.Id}";
-        qrUrl = $"https://img.vietqr.io/image/{bankId}-{accountNo}-compact.png?amount={amount}&addInfo={content}&accountName={accountName}";
+
+        // Mã hóa URL để tránh lỗi ký tự tiếng Việt hoặc dấu cách
+        string encodedContent = System.Net.WebUtility.UrlEncode(content);
+        string encodedAccountName = System.Net.WebUtility.UrlEncode(accountName);
+
+        // Tạo Link Ảnh QR Tiêu chuẩn (Gồm cả số tiền và nội dung)
+        qrUrl = $"https://img.vietqr.io/image/{bankId}-{accountNo}-compact.png?amount={amount}&addInfo={encodedContent}&accountName={encodedAccountName}";
     }
 }
 
@@ -124,6 +132,28 @@
         border-radius: 12px;
         font-size: 14px;
         border: 1px solid var(--border);
+        text-align: left;
+    }
+
+    .btn-pay-app {
+        background: linear-gradient(135deg, #004a92, #0072bc); /* Sacombank Blue */
+        color: #fff !important;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: transform 0.2s;
+    }
+
+    .btn-pay-app:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,74,146,0.3);
     }
 </style>
 
@@ -151,17 +181,24 @@
                         Quét mã QR để thanh toán nhanh chóng
                     </div>
 
-                    <img src="@qrUrl" alt="QR Thanh toán" />
+                     <!-- Hiển thị Ảnh QR chuẩn -->
+                    <img src="@qrUrl" alt="QR Thanh toán" style="max-width:300px; display:block; margin: 15px auto; border-radius: 10px; padding: 10px; background: #fff;" />
 
-                    <div class="qr-bank-info mt-2">
-                        <div><strong>Ngân hàng:</strong> MB Bank</div>
-                        <div><strong>Chủ tài khoản:</strong> TECHSHOP VN</div>
-                        <div><strong>Số tài khoản:</strong> 0123456789</div>
+                    <div class="qr-bank-info mt-3">
+                        <div class="mb-1"><strong>Ngân hàng:</strong> Sacombank (STB)</div>
+                        <div class="mb-1"><strong>Chủ tài khoản:</strong> NGUYEN VIET ANH</div>
+                        <div class="mb-1"><strong>Số tài khoản:</strong> 0327469105</div>
                         <div><strong>Nội dung:</strong> Thanh toan don hang @Model.Id</div>
                     </div>
 
-                    <div class="alert alert-warning mt-3">
-                        Vui lòng chuyển khoản đúng nội dung để hệ thống xác nhận tự động.
+                    <a href="@qrUrl" target="_blank" class="btn-pay-app mt-3">
+                        <i class="bi bi-phone"></i>
+                        Nhấn để Tải ảnh / Mở link QR
+                    </a>
+
+                    <div class="alert alert-warning mt-3 small">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        Vui lòng chuyển khoản đúng số tiền và nội dung để hệ thống tự động xác nhận.
                         <br />
                         Đơn hàng sẽ tự động hủy sau:
                         <strong id="countdown" class="text-danger">10:00</strong>
@@ -228,9 +265,8 @@
     </div>
 </div>
 
-@if (paymentMethod == "bank")
-{
     <script>
+        // Đếm ngược thời gian thanh toán
         var countDownDate = new Date("@Model.OrderDate.ToString("yyyy-MM-ddTHH:mm:ss")");
         countDownDate.setMinutes(countDownDate.getMinutes() + 10);
 

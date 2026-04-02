@@ -1,4 +1,4 @@
-﻿@model TechShop.Models.Order
+@model TechShop.Models.Order
 @{
     ViewData["Title"] = "Thanh toán";
 
@@ -103,13 +103,22 @@
                             <span asp-validation-for="City" class="text-danger small mt-1"></span>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label text-muted fw-bold">Mã giảm giá</label>
-                            <input name="couponCode" value="@ViewBag.CouponCode" class="form-control bg-light-surface text-primary border-light" placeholder="NHAP-MA-GIAM-GIA" />
-                            @if (ViewBag.CouponError != null)
-                            {
-                                <div class="text-danger small mt-1">@ViewBag.CouponError</div>
-                            }
+                            <div class="input-group">
+                                <input name="couponCode" id="couponInput" value="@ViewBag.CouponCode"
+                                       class="form-control bg-light-surface text-primary border-light"
+                                       placeholder="NHAP-MA-GIAM-GIA" />
+                                <button type="button" id="btnApplyCoupon" class="btn btn-primary fw-bold px-4">
+                                    Áp dụng
+                                </button>
+                            </div>
+                            <div id="couponMessage" class="small mt-2">
+                                @if (ViewBag.CouponError != null)
+                                {
+                                    <span class="text-danger">@ViewBag.CouponError</span>
+                                }
+                            </div>
                         </div>
 
                         <div class="col-md-5">
@@ -143,10 +152,6 @@
 
                         <div id="qr-code-section" class="text-center mt-3 mb-2" style="display:none;">
                             <h6 class="text-warning mb-2">Quét mã QR để thanh toán</h6>
-                            <img id="qr-image"
-                                 src="https://api.vietqr.io/image/970436-0123456789-dAbCdEf.jpg?accountName=TECHSHOP"
-                                 alt="Mã QR"
-                                 style="width:250px; border-radius:10px;" />
                             <p id="qr-instruction" class="mt-2 text-muted small">
                                 Vui lòng ghi nội dung CK: "Thanh toan don hang {SĐT của bạn}"
                             </p>
@@ -160,7 +165,7 @@
                             class="btn btn-primary btn-lg w-100 fw-bold shadow"
                             style="background-color: var(--brand-coral); border-color: var(--brand-coral); letter-spacing: 0.5px;">
                         <i class="bi bi-bag-check-fill me-2"></i>
-                        XÁC NHẬN ĐẶT HÀNG - @finalTotal.ToString("N0") ₫
+                        XÁC NHẬN ĐẶT HÀNG - <span id="btn-total-text">@finalTotal.ToString("N0") ₫</span>
                     </button>
 
                     <div class="trust-signals-container d-flex flex-column align-items-center mt-4 pt-3 border-top border-light">
@@ -200,30 +205,27 @@
 
                 <div class="summary-row">
                     <span>Tạm tính</span>
-                    <span>@cartTotal.ToString("N0") ₫</span>
+                    <span id="summary-subtotal">@cartTotal.ToString("N0") ₫</span>
                 </div>
 
                 <div class="summary-row">
                     <span>Giảm giá thẻ (@membershipTier)</span>
-                    <span class="text-success">-@memberDiscount.ToString("N0") ₫</span>
+                    <span class="text-success" id="summary-member-discount">-@memberDiscount.ToString("N0") ₫</span>
                 </div>
 
-                @if ((ViewBag.CouponDiscount as decimal?) > 0)
-                {
-                    <div class="summary-row">
-                        <span>Giảm giá mã (@ViewBag.CouponCode)</span>
-                        <span class="text-success">-@(((decimal)ViewBag.CouponDiscount).ToString("N0")) ₫</span>
-                    </div>
-                }
+                <div class="summary-row" id="coupon-discount-row" style="@((ViewBag.CouponDiscount as decimal?) > 0 ? "" : "display:none")">
+                    <span>Giảm giá mã (<span id="summary-coupon-code">@ViewBag.CouponCode</span>)</span>
+                    <span class="text-success" id="summary-coupon-discount">-@(((decimal)(ViewBag.CouponDiscount ?? 0m)).ToString("N0")) ₫</span>
+                </div>
 
                 <div class="summary-row">
                     <span>Vận chuyển</span>
-                    <span>@(shippingFee == 0 ? "Miễn phí" : shippingFee.ToString("N0") + " ₫")</span>
+                    <span id="summary-shipping">@(shippingFee == 0 ? "Miễn phí" : shippingFee.ToString("N0") + " ₫")</span>
                 </div>
 
                 <div class="summary-total mt-3">
                     <span>Tổng cộng</span>
-                    <span class="text-gradient">@finalTotal.ToString("N0") ₫</span>
+                    <span class="text-gradient" id="summary-total">@finalTotal.ToString("N0") ₫</span>
                 </div>
             </div>
         </div>
@@ -281,6 +283,60 @@
                     toggleQR();
                 });
             }
+
+            // AJAX Coupon Application
+            $('#btnApplyCoupon').click(function () {
+                const code = $('#couponInput').val().trim();
+                const $btn = $(this);
+                const $msg = $('#couponMessage');
+
+                if (!code) {
+                    $msg.html('<span class="text-danger">Vui lòng nhập mã giảm giá.</span>');
+                    return;
+                }
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+                $.ajax({
+                    url: '/Order/ValidateCoupon',
+                    type: 'POST',
+                    data: { couponCode: code },
+                    headers: {
+                        "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            $msg.html('<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>' + res.message + '</span>');
+                            $('#summary-coupon-discount').text('-' + res.couponDiscount.toLocaleString('vi-VN') + ' ₫');
+                            $('#summary-coupon-code').text(res.couponCode);
+                            $('#coupon-discount-row').fadeIn();
+                        } else {
+                            $msg.html('<span class="text-danger"><i class="bi bi-exclamation-circle-fill me-1"></i>' + res.message + '</span>');
+                            $('#coupon-discount-row').fadeOut();
+                        }
+
+                        // Update all totals regardless of success
+                        $('#summary-total').text(res.finalTotal.toLocaleString('vi-VN') + ' ₫');
+                        $('#btn-total-text').text(res.finalTotal.toLocaleString('vi-VN') + ' ₫');
+                        $('#summary-shipping').text(res.shippingFee === 0 ? 'Miễn phí' : res.shippingFee.toLocaleString('vi-VN') + ' ₫');
+                        $('#summary-member-discount').text('-' + res.memberDiscount.toLocaleString('vi-VN') + ' ₫');
+                    },
+                    error: function () {
+                        $msg.html('<span class="text-danger">Đã xảy ra lỗi khi áp dụng mã.</span>');
+                    },
+                    complete: function () {
+                        $btn.prop('disabled', false).text('Áp dụng');
+                    }
+                });
+            });
+
+            // Handle Enter key on coupon input
+            $('#couponInput').keypress(function (e) {
+                if (e.which == 13) {
+                    e.preventDefault();
+                    $('#btnApplyCoupon').click();
+                }
+            });
         });
     </script>
 }
