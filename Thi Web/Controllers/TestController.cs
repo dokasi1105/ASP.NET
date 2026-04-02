@@ -6,7 +6,7 @@
     {
         _emailService = emailService;
     }
-
+    // GET: /Test/TestMail
     public async Task<IActionResult> TestMail()
     {
         await _emailService.SendAsync(

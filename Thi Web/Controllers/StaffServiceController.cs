@@ -15,7 +15,7 @@ namespace TechShop.Controllers
         {
             _context = context;
         }
-
+        
         public async Task<IActionResult> Index()
         {
             var tickets = await _context.ServiceTickets.OrderByDescending(t => t.BookingDate).ToListAsync();

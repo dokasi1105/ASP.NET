@@ -13,7 +13,7 @@ namespace TechShop.Services
         {
             _serviceProvider = serviceProvider;
         }
-
+        // Mỗi phút sẽ kiểm tra và hủy các đơn hàng quá hạn thanh toán
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)

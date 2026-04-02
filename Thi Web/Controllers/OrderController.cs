@@ -30,7 +30,7 @@ namespace TechShop.Controllers
             _emailService = emailService;
             _logger = logger;
         }
-
+        // Mức chiết khấu
         private decimal GetMembershipDiscountRate(string tier)
         {
             return tier switch
@@ -41,7 +41,7 @@ namespace TechShop.Controllers
                 _ => 0m
             };
         }
-
+        // Phí vận chuyển
         private decimal CalculateShippingFee(int totalItems, decimal cartTotal, string tier)
         {
             if (tier == "Diamond") return 0;
@@ -82,7 +82,7 @@ namespace TechShop.Controllers
             ViewBag.MembershipTier = user.MembershipTier;
             ViewBag.DiscountRate = rate;
         }
-
+        // Trả về (discount, message, coupon) nếu có
         private async Task<(decimal discount, string message, Coupon? coupon)> ApplyCouponAsync(string? couponCode, decimal cartTotal)
         {
             if (string.IsNullOrWhiteSpace(couponCode))
@@ -103,7 +103,7 @@ namespace TechShop.Controllers
                 : rawDiscount;
             return (discount, "", coupon);
         }
-
+        // GET: /Order/Checkout
         [HttpGet]
         public async Task<IActionResult> Checkout()
         {
@@ -123,7 +123,7 @@ namespace TechShop.Controllers
             await SetCheckoutViewBagsAsync(cart, user);
             return View(model);
         }
-
+        // POST: /Order/Checkout
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(Order model, string? couponCode, string? paymentMethod)
@@ -239,7 +239,7 @@ namespace TechShop.Controllers
 
             return View(order);
         }
-
+        // GET: /Order/MyOrders
         public async Task<IActionResult> MyOrders()
         {
             var user = await _userManager.GetUserAsync(User);

@@ -4,7 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace TechShop.Models
 {
     // ===== VIEW MODELS =====
-    public class LoginViewModel
+    
+    public class LoginViewModel // Dùng cho trang đăng nhập
     {
         [Required(ErrorMessage = "Email là bắt buộc")]
         [EmailAddress(ErrorMessage = "Email không hợp lệ")]
@@ -43,7 +44,7 @@ namespace TechShop.Models
         public string ConfirmPassword { get; set; } = string.Empty;
     }
 
-    public class Category
+    public class Category // Danh mục sản phẩm
     {
         public int Id { get; set; }
         [Required(ErrorMessage = "Tên danh mục là bắt buộc")]
@@ -53,7 +54,7 @@ namespace TechShop.Models
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 
-    public class Product
+    public class Product // Sản phẩm chính, có thể có nhiều biến thể (variant) như màu sắc, dung lượng, nâng cấp
     {
         public int Id { get; set; }
 
@@ -110,7 +111,7 @@ namespace TechShop.Models
     }
 
     // 2. Thông số kỹ thuật
-    public class ProductSpecification
+    public class ProductSpecification // VD: CPU
     {
         public int Id { get; set; }
         public int ProductId { get; set; }
@@ -192,7 +193,7 @@ namespace TechShop.Models
         public Product? Product { get; set; }
         public int Quantity { get; set; }
     }
-
+    // 9. Đơn hàng và chi tiết đơn hàng
     public class Order
     {
         public int Id { get; set; }
@@ -233,7 +234,7 @@ namespace TechShop.Models
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
         public bool LoyaltyPointsAwarded { get; set; } = false;
     }
-
+    // Chi tiết từng sản phẩm trong đơn hàng
     public class OrderDetail
     {
         public int Id { get; set; }
@@ -247,7 +248,7 @@ namespace TechShop.Models
         [Display(Name = "Đơn giá")]
         public decimal UnitPrice { get; set; }
     }
-
+    // ViewModel cho giỏ hàng, không lưu vào database mà chỉ dùng để hiển thị tạm thời
     public class CartItem
     {
         public int ProductId { get; set; }
@@ -278,6 +279,7 @@ namespace TechShop.Models
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty;
     }
+    // ViewModel cho trang đặt lại mật khẩu sau khi nhận được token qua email
     public class ResetPasswordViewModel
     {
         [Required, EmailAddress]
@@ -311,6 +313,7 @@ namespace TechShop.Models
 
         public List<ProductVariantOption> Options { get; set; } = new();
     }
+    // Các tùy chọn cụ thể cho từng nhóm biến thể, ví dụ: Nhóm "Màu Sắc" có các tùy chọn "Xanh", "Đỏ", "Đen"
     public class ProductVariantOption
     {
         public int Id { get; set; }
@@ -325,6 +328,7 @@ namespace TechShop.Models
         public int SortOrder { get; set; } = 0;
         public bool IsActive { get; set; } = true;
     }
+    // Liên kết giữa sản phẩm và các tùy chọn biến thể đã chọn, ví dụ: Sản phẩm "Laptop XYZ" có tùy chọn "Màu Sắc: Đỏ" và "Dung Lượng: 16GB"
     public class ProductVariantSelection
     {
         public int Id { get; set; }
@@ -335,6 +339,7 @@ namespace TechShop.Models
         public int ProductVariantOptionId { get; set; }
         public ProductVariantOption? ProductVariantOption { get; set; }
     }
+    // Biến thể sản phẩm cụ thể, ví dụ: Laptop XYZ màu đỏ dung lượng 16GB có giá và tồn kho riêng
     public class ProductVariant
     {
         public int Id { get; set; }
@@ -346,6 +351,7 @@ namespace TechShop.Models
         public Product? Product { get; set; }
         public List<ProductVariantValue> Values { get; set; } = new();
     }
+    // Liên kết giữa biến thể sản phẩm và các tùy chọn đã chọn
     public class ProductVariantValue
     {
         public int Id { get; set; }

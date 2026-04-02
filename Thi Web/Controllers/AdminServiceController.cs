@@ -15,13 +15,13 @@ namespace TechShop.Controllers
         {
             _context = context;
         }
-
+        // GET: Admin/Service
         public async Task<IActionResult> Index()
         {
             var tickets = await _context.ServiceTickets.OrderByDescending(t => t.BookingDate).ToListAsync();
             return View("~/Views/Admin/Service/Index.cshtml", tickets);
         }
-
+        // POST: Admin/Service/UpdateStatus
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {

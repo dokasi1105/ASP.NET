@@ -14,7 +14,7 @@ namespace TechShop.Controllers
             _signInManager = signInManager;
             _env = env;
         }
-
+        // trang profile hiển thị thông tin người dùng, cho phép cập nhật thông tin và đổi mật khẩu
         [HttpGet]
         public async Task<IActionResult> Index()
         {
@@ -32,7 +32,7 @@ namespace TechShop.Controllers
             };
             return View(model);
         }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(ProfileViewModel model)
@@ -68,7 +68,7 @@ namespace TechShop.Controllers
 
             return View(model);
         }
-
+        // xử lý đổi mật khẩu
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ProfileViewModel model)
@@ -131,7 +131,7 @@ namespace TechShop.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
+        
         private async Task<(bool success, string message)> TrySaveAvatarAsync(ApplicationUser user, IFormFile avatarFile)
         {
             const long maxBytes = 2 * 1024 * 1024; // 2MB
